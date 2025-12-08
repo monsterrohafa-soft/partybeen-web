@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { PortfolioItem } from '@/data/portfolio';
@@ -27,12 +26,11 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
             onClick={() => setSelectedItem(item)}
           >
             <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={item.image}
                 alt={item.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               {/* 오버레이 */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
@@ -83,13 +81,11 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
 
               {/* 이미지 */}
               <div className="relative aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={selectedItem.image}
                   alt={selectedItem.title}
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
-                  priority
+                  className="absolute inset-0 w-full h-full object-contain"
                 />
               </div>
 
