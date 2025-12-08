@@ -1,45 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Play, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { BRAND, CONTACT } from '@/lib/constants';
 
-// YouTube 비디오 ID 추출
-const getYouTubeVideoId = (url: string) => {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-  return match ? match[1] : '';
-};
-
-// 모바일/터치 디바이스 감지 (더 정확한 방법)
-const checkIsMobileDevice = () => {
-  if (typeof window === 'undefined') return false;
-
-  // 터치 디바이스 감지
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-  // 모바일 User Agent 감지
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-  // 화면 너비 감지
-  const isSmallScreen = window.innerWidth < 768;
-
-  // 모바일 UA이거나 (터치 디바이스이면서 작은 화면)인 경우
-  return isMobileUA || (isTouchDevice && isSmallScreen);
-};
-
 export default function HeroSection() {
-  const [isMobile, setIsMobile] = useState(true); // 기본값을 true로 (모바일 우선)
   const [isClient, setIsClient] = useState(false);
-  const videoId = getYouTubeVideoId(CONTACT.youtubeVideo);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     setIsClient(true);
-    const checkMobile = () => setIsMobile(checkIsMobileDevice());
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    // 비디오 자동 재생 시도 (브라우저 정책으로 막힐 경우 대비)
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {
+        // 자동 재생 실패 시 무시 (muted라서 대부분 성공함)
+      });
+    }
   }, []);
 
   const scrollToServices = () => {
@@ -48,28 +28,20 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-screen min-h-[600px] max-h-[900px] flex items-center justify-center overflow-hidden">
-      {/* 배경 영상 (데스크톱) 또는 이미지 (모바일/터치 디바이스) */}
+      {/* 배경 영상 - PC/모바일 모두 자동재생 */}
       <div className="absolute inset-0 z-0">
-        {isClient && !isMobile ? (
-          // 데스크톱: YouTube 자동재생
-          <div className="relative w-full h-full overflow-hidden">
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&disablekb=1`}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.77vh] min-w-full h-[56.25vw] min-h-full"
-              allow="autoplay; encrypted-media; accelerometer; gyroscope"
-              allowFullScreen
-              style={{ border: 'none', pointerEvents: 'none' }}
-            />
-          </div>
-        ) : (
-          // 모바일/터치: 고화질 썸네일 이미지
-          <div
-            className="w-full h-full bg-cover bg-center"
-            style={{
-              backgroundImage: `url('https://img.youtube.com/vi/${videoId}/maxresdefault.jpg')`,
-            }}
-          />
-        )}
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto object-cover"
+          poster="/videos/hero-poster.jpg"
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
         {/* 오버레이 */}
         <div className="absolute inset-0 bg-black/50" />
       </div>
@@ -115,20 +87,6 @@ export default function HeroSection() {
             포트폴리오 보기
           </Link>
         </motion.div>
-
-        {/* 모바일 영상 재생 버튼 - 더 눈에 띄게 */}
-        {isClient && isMobile && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
-            onClick={() => window.open(CONTACT.youtubeVideo, '_blank')}
-            className="mt-8 flex items-center gap-2 mx-auto px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 text-white hover:bg-white/30 transition-all"
-          >
-            <Play size={20} fill="white" />
-            <span className="font-medium">영상으로 보기</span>
-          </motion.button>
-        )}
       </div>
 
       {/* 스크롤 다운 표시 */}
