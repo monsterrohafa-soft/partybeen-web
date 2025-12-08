@@ -50,6 +50,7 @@ export default function ServiceCategories() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {categories.map((category, index) => {
             const details = categoryDetails[category.slug as keyof typeof categoryDetails];
+            if (!details) return null;
             return (
               <motion.div
                 key={category.id}
