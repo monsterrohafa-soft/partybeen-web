@@ -38,9 +38,9 @@ export default function HeroSection() {
           playsInline
           preload="auto"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto object-cover"
-          poster="/videos/hero-poster.jpg"
+          poster="/videos/hero-poster.jpg?v=2"
         >
-          <source src="/videos/hero.mp4" type="video/mp4" />
+          <source src="/videos/hero.mp4?v=2" type="video/mp4" />
         </video>
         {/* 오버레이 */}
         <div className="absolute inset-0 bg-black/50" />
