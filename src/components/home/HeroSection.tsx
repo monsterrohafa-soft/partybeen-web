@@ -12,14 +12,31 @@ const getYouTubeVideoId = (url: string) => {
   return match ? match[1] : '';
 };
 
+// 모바일/터치 디바이스 감지 (더 정확한 방법)
+const checkIsMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+
+  // 터치 디바이스 감지
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // 모바일 User Agent 감지
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  // 화면 너비 감지
+  const isSmallScreen = window.innerWidth < 768;
+
+  // 모바일 UA이거나 (터치 디바이스이면서 작은 화면)인 경우
+  return isMobileUA || (isTouchDevice && isSmallScreen);
+};
+
 export default function HeroSection() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // 기본값을 true로 (모바일 우선)
   const [isClient, setIsClient] = useState(false);
   const videoId = getYouTubeVideoId(CONTACT.youtubeVideo);
 
   useEffect(() => {
     setIsClient(true);
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(checkIsMobileDevice());
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -31,19 +48,21 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-screen min-h-[600px] max-h-[900px] flex items-center justify-center overflow-hidden">
-      {/* 배경 영상 (데스크톱) 또는 이미지 (모바일) */}
+      {/* 배경 영상 (데스크톱) 또는 이미지 (모바일/터치 디바이스) */}
       <div className="absolute inset-0 z-0">
         {isClient && !isMobile ? (
+          // 데스크톱: YouTube 자동재생
           <div className="relative w-full h-full overflow-hidden">
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&disablekb=1`}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.77vh] min-w-full h-[56.25vw] min-h-full"
-              allow="autoplay; encrypted-media"
+              allow="autoplay; encrypted-media; accelerometer; gyroscope"
               allowFullScreen
               style={{ border: 'none', pointerEvents: 'none' }}
             />
           </div>
         ) : (
+          // 모바일/터치: 고화질 썸네일 이미지
           <div
             className="w-full h-full bg-cover bg-center"
             style={{
@@ -97,17 +116,17 @@ export default function HeroSection() {
           </Link>
         </motion.div>
 
-        {/* 모바일 영상 재생 버튼 */}
-        {isMobile && (
+        {/* 모바일 영상 재생 버튼 - 더 눈에 띄게 */}
+        {isClient && isMobile && (
           <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
             onClick={() => window.open(CONTACT.youtubeVideo, '_blank')}
-            className="mt-6 flex items-center gap-2 mx-auto text-sm text-gray-300 hover:text-white transition-colors"
+            className="mt-8 flex items-center gap-2 mx-auto px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 text-white hover:bg-white/30 transition-all"
           >
-            <Play size={16} />
-            영상 보기
+            <Play size={20} fill="white" />
+            <span className="font-medium">영상으로 보기</span>
           </motion.button>
         )}
       </div>
