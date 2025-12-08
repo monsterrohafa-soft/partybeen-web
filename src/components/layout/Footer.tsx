@@ -61,7 +61,7 @@ export default function Footer() {
                 href={CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#025566] hover:bg-[#FAF3ED] hover:text-[#013A46] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#FAF3ED] text-[#013A46] hover:bg-white transition-colors"
                 aria-label="인스타그램"
               >
                 <Instagram size={18} />
@@ -70,7 +70,7 @@ export default function Footer() {
                 href={CONTACT.blog}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#025566] hover:bg-[#FAF3ED] hover:text-[#013A46] transition-colors text-xs font-bold"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#03C75A] text-white hover:opacity-80 transition-opacity text-xs font-bold"
                 aria-label="네이버 블로그"
               >
                 N

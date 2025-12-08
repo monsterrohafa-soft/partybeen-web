@@ -62,7 +62,28 @@ src/
 - 빌드 테스트 성공
 
 **다음 단계:**
-- GitHub 저장소 생성 및 연결
-- Vercel 배포
 - 실제 이미지로 교체
 - SEO 최적화
+
+### 2024-12-08: GitHub + Vercel 배포 완료
+
+**완료된 작업:**
+- GitHub 저장소 연결 (monsterrohafa-soft/partybeen-web)
+- Vercel 자동 배포 설정
+
+### 2024-12-08: 브랜드 컬러 통일
+
+**완료된 작업:**
+- 기존 골드색(#c9a962) → 피콕그린(#025566, #013A46)으로 전체 통일
+- 수정된 파일:
+  - globals.css (CSS 변수, 스크롤바)
+  - about/page.tsx
+  - contact/page.tsx
+  - portfolio/page.tsx
+  - Header.tsx
+  - Footer.tsx
+  - HeroSection.tsx
+  - ContactCTA.tsx
+  - ServiceCategories.tsx
+  - MobileBottomBar.tsx
+  - GalleryGrid.tsx
