@@ -27,7 +27,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-screen min-h-[600px] max-h-[900px] flex items-center justify-center overflow-hidden">
+    <section className="relative h-[70vh] sm:h-screen min-h-[500px] max-h-[900px] flex items-center justify-center overflow-hidden">
       {/* 배경 영상 - PC/모바일 모두 자동재생 */}
       <div className="absolute inset-0 z-0 bg-black">
         <video
@@ -37,7 +37,7 @@ export default function HeroSection() {
           loop
           playsInline
           preload="auto"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-contain sm:object-cover sm:min-w-full sm:min-h-full sm:w-auto sm:h-auto"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover"
           poster="/videos/hero-poster.jpg?v=2"
         >
           <source src="/videos/hero.mp4?v=2" type="video/mp4" />
