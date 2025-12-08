@@ -1,31 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { CATEGORIES } from '@/lib/constants';
 
-// 카테고리별 샘플 이미지 및 설명 (나중에 실제 이미지로 교체)
+// 카테고리별 샘플 이미지 및 설명
 const categoryDetails = {
   catering: {
-    image: '/images/portfolio/catering-sample.jpg',
+    image: '/images/portfolio/812518548_1.jpg',
     description: '기업행사, 웨딩, 프라이빗 파티를 위한 프리미엄 출장 케이터링',
-    placeholder: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=600&h=400&fit=crop',
   },
   'food-box': {
-    image: '/images/portfolio/foodbox-sample.jpg',
+    image: '/images/portfolio/1982018076_1.jpg',
     description: '다양한 메뉴를 한 박스에 담은 스페셜 푸드 박스',
-    placeholder: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop',
   },
   'lunch-box': {
-    image: '/images/portfolio/lunchbox-sample.jpg',
+    image: '/images/portfolio/1150916187_1.jpg',
     description: '정성을 담은 프리미엄 도시락 서비스',
-    placeholder: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop',
   },
   'box-catering': {
-    image: '/images/portfolio/boxcatering-sample.jpg',
+    image: '/images/portfolio/2005674040_1.jpg',
     description: '소규모 행사에 적합한 박스형 케이터링',
-    placeholder: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop',
   },
 };
 
@@ -68,12 +63,11 @@ export default function ServiceCategories() {
                   className="group block relative overflow-hidden rounded-2xl aspect-[3/4] sm:aspect-square"
                 >
                   {/* 이미지 */}
-                  <Image
-                    src={details.placeholder}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={details.image}
                     alt={category.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
 
                   {/* 오버레이 */}
