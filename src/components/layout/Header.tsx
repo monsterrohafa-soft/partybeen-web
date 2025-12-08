@@ -15,7 +15,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* 로고 */}
           <Link href="/" className="flex items-center">
-            <span className="text-xl sm:text-2xl font-bold text-[#2d2d2d] tracking-wider">
+            <span className="text-xl sm:text-2xl font-bold text-[#013A46] tracking-wider">
               {BRAND.name}
             </span>
           </Link>
@@ -26,7 +26,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium text-gray-700 hover:text-[#c9a962] transition-colors"
+                className="text-sm font-medium text-gray-700 hover:text-[#013A46] transition-colors"
               >
                 {item.name}
               </Link>
@@ -37,7 +37,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-4">
             <a
               href={`tel:${CONTACT.phone}`}
-              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#c9a962] transition-colors"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#013A46] transition-colors"
             >
               <Phone size={16} />
               {CONTACT.phone}
@@ -46,7 +46,7 @@ export default function Header() {
               href={CONTACT.kakaoChannel}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-[#2d2d2d] text-white text-sm font-medium rounded-full hover:bg-[#c9a962] transition-colors"
+              className="px-5 py-2.5 bg-[#013A46] text-white text-sm font-medium rounded-full hover:bg-[#025566] transition-colors"
             >
               견적 문의
             </a>
@@ -78,7 +78,7 @@ export default function Header() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#c9a962]"
+                  className="px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#025566]"
                 >
                   {item.name}
                 </Link>

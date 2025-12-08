@@ -6,7 +6,7 @@ import { CONTACT } from '@/lib/constants';
 
 export default function ContactCTA() {
   return (
-    <section className="py-16 sm:py-24 bg-[#2d2d2d] text-white">
+    <section className="py-16 sm:py-24 bg-[#013A46] text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -45,7 +45,7 @@ export default function ContactCTA() {
           {/* 전화 */}
           <a
             href={`tel:${CONTACT.phone}`}
-            className="flex flex-col items-center gap-3 p-6 bg-[#c9a962] text-white rounded-2xl hover:scale-105 transition-transform"
+            className="flex flex-col items-center gap-3 p-6 bg-[#025566] text-white rounded-2xl hover:scale-105 transition-transform"
           >
             <Phone size={32} />
             <span className="font-semibold">전화 문의</span>
@@ -55,7 +55,7 @@ export default function ContactCTA() {
           {/* 이메일 */}
           <a
             href={`mailto:${CONTACT.email}`}
-            className="flex flex-col items-center gap-3 p-6 bg-gray-700 text-white rounded-2xl hover:scale-105 transition-transform"
+            className="flex flex-col items-center gap-3 p-6 bg-[#013A46] text-white rounded-2xl hover:scale-105 transition-transform"
           >
             <Mail size={32} />
             <span className="font-semibold">이메일 문의</span>

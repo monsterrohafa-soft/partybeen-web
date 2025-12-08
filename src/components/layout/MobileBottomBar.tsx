@@ -23,7 +23,7 @@ export default function MobileBottomBar() {
         {/* 전화 문의 */}
         <a
           href={`tel:${CONTACT.phone}`}
-          className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#2d2d2d] text-white font-medium"
+          className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#013A46] text-white font-medium"
         >
           <Phone size={18} />
           전화 문의

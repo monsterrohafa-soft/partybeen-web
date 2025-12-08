@@ -90,7 +90,7 @@ export default function ServiceCategories() {
                   </div>
 
                   {/* 호버 효과 */}
-                  <div className="absolute inset-0 border-4 border-[#c9a962] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                  <div className="absolute inset-0 border-4 border-[#013A46] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
                 </Link>
               </motion.div>
             );

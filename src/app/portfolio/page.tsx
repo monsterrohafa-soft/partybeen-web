@@ -55,7 +55,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
             href="https://pf.kakao.com/_DTqwT"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-8 py-3 bg-[#c9a962] text-white font-medium rounded-full hover:bg-[#b8994f] transition-colors"
+            className="inline-block px-8 py-3 bg-[#025566] text-white font-medium rounded-full hover:bg-[#013A46] transition-colors"
           >
             견적 문의하기
           </a>

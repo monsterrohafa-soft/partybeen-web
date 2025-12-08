@@ -4,12 +4,12 @@ import { CONTACT, NAV_ITEMS, BRAND } from '@/lib/constants';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#2d2d2d] text-white">
+    <footer className="bg-[#013A46] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* 브랜드 정보 */}
           <div>
-            <h3 className="text-xl font-bold mb-4 text-[#c9a962]">{BRAND.name}</h3>
+            <h3 className="text-xl font-bold mb-4 text-[#FAF3ED]">{BRAND.name}</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               {BRAND.description}
             </p>
@@ -25,7 +25,7 @@ export default function Footer() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-400 hover:text-[#c9a962] transition-colors text-sm"
+                  className="text-gray-300 hover:text-[#FAF3ED] transition-colors text-sm"
                 >
                   {item.name}
                 </Link>
@@ -41,14 +41,14 @@ export default function Footer() {
             <div className="flex flex-col gap-3 text-sm text-gray-400">
               <a
                 href={`tel:${CONTACT.phone}`}
-                className="flex items-center gap-2 hover:text-[#c9a962] transition-colors"
+                className="flex items-center gap-2 hover:text-[#FAF3ED] transition-colors"
               >
                 <Phone size={16} />
                 {CONTACT.phone}
               </a>
               <a
                 href={`mailto:${CONTACT.email}`}
-                className="flex items-center gap-2 hover:text-[#c9a962] transition-colors"
+                className="flex items-center gap-2 hover:text-[#FAF3ED] transition-colors"
               >
                 <Mail size={16} />
                 {CONTACT.email}
@@ -61,7 +61,7 @@ export default function Footer() {
                 href={CONTACT.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-[#c9a962] transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#025566] hover:bg-[#FAF3ED] hover:text-[#013A46] transition-colors"
                 aria-label="인스타그램"
               >
                 <Instagram size={18} />
@@ -70,7 +70,7 @@ export default function Footer() {
                 href={CONTACT.blog}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-[#c9a962] transition-colors text-xs font-bold"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#025566] hover:bg-[#FAF3ED] hover:text-[#013A46] transition-colors text-xs font-bold"
                 aria-label="네이버 블로그"
               >
                 N

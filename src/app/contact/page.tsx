@@ -84,7 +84,7 @@ export default function ContactPage() {
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}
-                  className="px-6 py-3 bg-[#c9a962] text-white font-medium rounded-full hover:bg-[#b8994f] transition-colors"
+                  className="px-6 py-3 bg-[#025566] text-white font-medium rounded-full hover:bg-[#013A46] transition-colors"
                 >
                   새 문의 작성
                 </button>
@@ -103,7 +103,7 @@ export default function ContactPage() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition"
                       placeholder="홍길동"
                     />
                   </div>
@@ -117,7 +117,7 @@ export default function ContactPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition"
                       placeholder="010-1234-5678"
                     />
                   </div>
@@ -133,7 +133,7 @@ export default function ContactPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition"
                     placeholder="example@email.com"
                   />
                 </div>
@@ -148,7 +148,7 @@ export default function ContactPage() {
                       name="eventType"
                       value={formData.eventType}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition bg-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition bg-white"
                     >
                       <option value="">선택해주세요</option>
                       <option value="기업행사">기업행사</option>
@@ -168,7 +168,7 @@ export default function ContactPage() {
                       name="eventDate"
                       value={formData.eventDate}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition"
                     />
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export default function ContactPage() {
                     name="guestCount"
                     value={formData.guestCount}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition bg-white"
                   >
                     <option value="">선택해주세요</option>
                     <option value="10명 이하">10명 이하</option>
@@ -204,7 +204,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#c9a962] focus:border-transparent outline-none transition resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#025566] focus:border-transparent outline-none transition resize-none"
                     placeholder="행사 장소, 원하시는 메뉴, 예산 등 상세 내용을 적어주세요."
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-[#c9a962] text-white font-semibold rounded-lg hover:bg-[#b8994f] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 bg-[#025566] text-white font-semibold rounded-lg hover:bg-[#013A46] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     '전송 중...'
@@ -251,7 +251,7 @@ export default function ContactPage() {
               href={`tel:${CONTACT.phone}`}
               className="flex items-center gap-4 p-5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
             >
-              <div className="w-10 h-10 bg-[#c9a962] rounded-full flex items-center justify-center text-white">
+              <div className="w-10 h-10 bg-[#025566] rounded-full flex items-center justify-center text-white">
                 <Phone size={18} />
               </div>
               <div>

@@ -76,7 +76,7 @@ export default function HeroSection() {
             href={CONTACT.kakaoChannel}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto px-8 py-4 bg-[#c9a962] hover:bg-[#b8994f] text-white font-semibold rounded-full transition-all transform hover:scale-105 text-center"
+            className="w-full sm:w-auto px-8 py-4 bg-[#025566] hover:bg-[#013A46] text-white font-semibold rounded-full transition-all transform hover:scale-105 text-center"
           >
             견적 문의하기
           </a>

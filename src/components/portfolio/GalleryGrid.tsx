@@ -75,7 +75,7 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
               {/* 닫기 버튼 */}
               <button
                 onClick={() => setSelectedItem(null)}
-                className="absolute -top-12 right-0 text-white hover:text-[#c9a962] transition-colors"
+                className="absolute -top-12 right-0 text-white hover:text-[#025566] transition-colors"
                 aria-label="닫기"
               >
                 <X size={32} />

@@ -51,7 +51,7 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#c9a962]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">🍽️</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">신선한 재료</h3>
@@ -60,7 +60,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#c9a962]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">👨‍🍳</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">전문 셰프</h3>
@@ -69,7 +69,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#c9a962]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">✨</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">맞춤 서비스</h3>
@@ -99,7 +99,7 @@ export default function AboutPage() {
                     href={CONTACT.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-[#c9a962]"
+                    className="text-gray-600 hover:text-[#025566]"
                   >
                     인스타그램
                   </a>
@@ -107,7 +107,7 @@ export default function AboutPage() {
                     href={CONTACT.blog}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-[#c9a962]"
+                    className="text-gray-600 hover:text-[#025566]"
                   >
                     블로그
                   </a>
