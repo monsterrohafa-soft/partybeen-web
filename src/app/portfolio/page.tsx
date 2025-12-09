@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import CategoryFilter from '@/components/portfolio/CategoryFilter';
 import GalleryGrid from '@/components/portfolio/GalleryGrid';
-import { getPortfolioByCategory } from '@/data/portfolio';
+import prisma from '@/lib/prisma';
 import { BRAND } from '@/lib/constants';
 
 export const metadata: Metadata = {
@@ -10,14 +10,42 @@ export const metadata: Metadata = {
   description: `${BRAND.name}의 다양한 케이터링 포트폴리오를 확인하세요.`,
 };
 
+// 동적 렌더링 (DB 데이터 실시간 반영)
+export const dynamic = 'force-dynamic';
+
 interface PortfolioPageProps {
   searchParams: Promise<{ category?: string }>;
+}
+
+// DB에서 포트폴리오 데이터 가져오기
+async function getPortfolios(categorySlug?: string) {
+  const portfolios = await prisma.portfolio.findMany({
+    where: {
+      isVisible: true,
+      ...(categorySlug && categorySlug !== 'all'
+        ? { category: { slug: categorySlug } }
+        : {}),
+    },
+    include: {
+      category: true,
+    },
+    orderBy: [{ orderIndex: 'asc' }, { createdAt: 'desc' }],
+  });
+
+  // GalleryGrid 컴포넌트용 데이터 형식으로 변환
+  return portfolios.map((p) => ({
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    image: p.imageUrl, // DB의 imageUrl을 image로 매핑
+    category: p.category?.slug || 'catering',
+  }));
 }
 
 export default async function PortfolioPage({ searchParams }: PortfolioPageProps) {
   const params = await searchParams;
   const category = params.category || 'all';
-  const items = getPortfolioByCategory(category);
+  const items = await getPortfolios(category);
 
   return (
     <div className="py-8 sm:py-16">

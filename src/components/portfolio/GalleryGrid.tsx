@@ -3,7 +3,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { PortfolioItem } from '@/data/portfolio';
+
+// DB에서 가져온 포트폴리오 아이템 타입
+interface PortfolioItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  image: string;
+  category: string;
+}
 
 interface GalleryGridProps {
   items: PortfolioItem[];
