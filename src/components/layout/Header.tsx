@@ -20,21 +20,13 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-soft'
-          : 'bg-[#013A46]/90 backdrop-blur-sm'
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* 로고 */}
           <Link href="/" className="flex items-center group">
-            <span
-              className={`text-xl sm:text-2xl font-bold tracking-wider transition-colors ${
-                isScrolled ? 'text-[#013A46]' : 'text-white'
-              }`}
-            >
+            <span className="text-xl sm:text-2xl font-bold tracking-wider text-[#013A46]">
               {BRAND.name}
             </span>
           </Link>
@@ -45,11 +37,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative px-4 py-2 text-sm font-medium transition-colors rounded-full ${
-                  isScrolled
-                    ? 'text-gray-700 hover:text-[#013A46] hover:bg-gray-100'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                }`}
+                className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#013A46] hover:bg-gray-100 transition-colors rounded-full"
               >
                 {item.name}
               </Link>
@@ -60,11 +48,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-3">
             <a
               href={`tel:${CONTACT.phone}`}
-              className={`flex items-center gap-2 text-sm transition-colors px-3 py-2 rounded-full ${
-                isScrolled
-                  ? 'text-gray-600 hover:text-[#013A46] hover:bg-gray-100'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#013A46] hover:bg-gray-100 transition-colors px-3 py-2 rounded-full"
             >
               <Phone size={16} />
               <span className="hidden lg:inline">{CONTACT.phone}</span>
@@ -73,11 +57,7 @@ export default function Header() {
               href={CONTACT.kakaoChannel}
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-300 ${
-                isScrolled
-                  ? 'bg-[#013A46] text-white hover:bg-[#025566] hover:shadow-lg'
-                  : 'bg-white text-[#013A46] hover:bg-white/90'
-              }`}
+              className="px-5 py-2.5 text-sm font-medium rounded-full bg-[#013A46] text-white hover:bg-[#025566] hover:shadow-lg transition-all duration-300"
             >
               견적 문의
             </a>
@@ -86,11 +66,7 @@ export default function Header() {
           {/* 모바일 메뉴 버튼 */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`md:hidden p-2 rounded-full transition-colors ${
-              isScrolled
-                ? 'text-gray-700 hover:bg-gray-100'
-                : 'text-white hover:bg-white/10'
-            }`}
+            className="md:hidden p-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
             aria-label="메뉴 열기"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
