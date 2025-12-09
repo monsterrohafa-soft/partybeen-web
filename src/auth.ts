@@ -23,7 +23,7 @@ export const authOptions: AuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { username: credentials.username },
+          where: { email: credentials.username }, // email 필드를 아이디로 사용
         });
 
         if (!user || !user.password) {
@@ -41,7 +41,7 @@ export const authOptions: AuthOptions = {
 
         return {
           id: user.id,
-          email: user.username, // NextAuth는 email 필드 필요
+          email: user.email,
           name: user.name,
           role: user.role,
         };
