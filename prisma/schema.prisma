@@ -15,7 +15,8 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String    @unique
+  username      String    @unique  // 이메일 형식 X, 단순 아이디
+  email         String?   // 이메일은 선택사항으로 변경
   emailVerified DateTime?
   password      String?
   image         String?

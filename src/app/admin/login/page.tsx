@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, Loader2 } from 'lucide-react';
+import { Lock, User, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,13 +19,13 @@ export default function AdminLoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        email,
+        username,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다');
+        setError('아이디 또는 비밀번호가 올바르지 않습니다');
       } else {
         router.push('/admin/portfolio');
       }
@@ -57,19 +57,19 @@ export default function AdminLoginPage() {
           )}
 
           <div className="space-y-6">
-            {/* 이메일 */}
+            {/* 아이디 */}
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-2">
-                이메일
+                아이디
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#025566] focus:border-transparent"
-                  placeholder="admin@partybeen.com"
+                  placeholder="admin"
                   required
                 />
               </div>

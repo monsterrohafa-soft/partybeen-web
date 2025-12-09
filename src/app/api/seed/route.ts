@@ -15,15 +15,15 @@ export async function GET(request: Request) {
 
   try {
     // 0. 관리자 계정 생성/업데이트 (admin / admin)
-    const adminEmail = 'admin';
+    const adminUsername = 'admin';
     const adminPassword = 'admin';
     const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
     await prisma.user.upsert({
-      where: { email: adminEmail },
+      where: { username: adminUsername },
       update: { password: hashedPassword }, // 기존 계정도 비밀번호 업데이트
       create: {
-        email: adminEmail,
+        username: adminUsername,
         name: 'Admin',
         password: hashedPassword,
         role: 'ADMIN',
@@ -111,7 +111,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       message: `시드 완료! 생성: ${created}개, 스킵(중복): ${skipped}개`,
-      admin: { email: 'admin', password: 'admin' },
+      admin: { username: 'admin', password: 'admin' },
       categories: categories.length,
       portfolios: { created, skipped },
     });

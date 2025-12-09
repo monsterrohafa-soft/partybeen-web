@@ -24,21 +24,21 @@ async function main() {
   console.log('✅ Categories created');
 
   // 2. 관리자 계정 생성
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin';
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
   await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: {},
+    where: { username: adminUsername },
+    update: { password: hashedPassword },
     create: {
-      email: adminEmail,
+      username: adminUsername,
       name: 'Admin',
       password: hashedPassword,
       role: 'ADMIN',
     },
   });
-  console.log(`✅ Admin user created: ${adminEmail}`);
+  console.log(`✅ Admin user created: ${adminUsername}`);
 
   // 3. 기존 포트폴리오 데이터 마이그레이션
   const portfolioData = [
