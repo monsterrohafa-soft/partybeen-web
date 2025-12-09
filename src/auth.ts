@@ -64,5 +64,5 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'eMdxwHDVvHDSyqQZ4uMKLEd0xiqdNZ4ad251MhWyKpc=',
 };
