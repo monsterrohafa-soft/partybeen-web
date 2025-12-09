@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { put } from '@vercel/blob';
-import { auth } from '@/auth';
+import { authOptions } from '@/auth';
 
 export async function POST(request: NextRequest) {
   try {
     // 인증 확인
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
     }
