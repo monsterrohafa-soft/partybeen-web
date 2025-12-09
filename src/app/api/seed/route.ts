@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 // GET: DB 시드 실행 (포트폴리오 데이터 마이그레이션)
 // 주의: 프로덕션에서는 보안을 위해 비활성화 필요
@@ -13,6 +14,22 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 0. 관리자 계정 생성/업데이트 (admin / admin)
+    const adminEmail = 'admin';
+    const adminPassword = 'admin';
+    const hashedPassword = await bcrypt.hash(adminPassword, 12);
+
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { password: hashedPassword }, // 기존 계정도 비밀번호 업데이트
+      create: {
+        email: adminEmail,
+        name: 'Admin',
+        password: hashedPassword,
+        role: 'ADMIN',
+      },
+    });
+
     // 1. 카테고리 생성
     const categories = [
       { name: 'CATERING', slug: 'catering', description: '기업행사, 웨딩, 프라이빗 파티를 위한 프리미엄 출장 케이터링' },
@@ -94,6 +111,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       message: `시드 완료! 생성: ${created}개, 스킵(중복): ${skipped}개`,
+      admin: { email: 'admin', password: 'admin' },
       categories: categories.length,
       portfolios: { created, skipped },
     });

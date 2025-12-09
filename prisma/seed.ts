@@ -24,8 +24,8 @@ async function main() {
   console.log('✅ Categories created');
 
   // 2. 관리자 계정 생성
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@partybeen.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'partybeen2024!';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
   await prisma.user.upsert({
