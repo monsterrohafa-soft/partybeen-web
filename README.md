@@ -126,3 +126,38 @@ src/
 - 헤더 배경을 항상 흰색으로 고정 (투명 제거)
 - 메뉴 텍스트 색상 어두운색으로 통일
 - 스크롤 상태와 관계없이 일관된 디자인
+
+### 2024-12-09: NextAuth 인증 문제 해결
+
+**문제:**
+- 관리자 로그인 시 "Server error - There is a problem with the server configuration" 에러 발생
+- Vercel 로그에서 `NO_SECRET` 에러 확인
+
+**해결 과정:**
+1. NextAuth v5 beta → v4.24.7 다운그레이드
+2. `@auth/prisma-adapter` 패키지 제거 (v5 전용)
+3. `auth.ts` 파일을 v4 패턴으로 변경 (AuthOptions 사용)
+4. API 라우트에서 `getServerSession(authOptions)` 패턴으로 변경
+5. NEXTAUTH_SECRET 하드코딩 fallback 추가
+
+**수정된 파일:**
+- `src/auth.ts` - NextAuth v4 설정으로 변경
+- `src/app/api/auth/[...nextauth]/route.ts` - v4 핸들러로 변경
+- `src/app/api/portfolio/route.ts` - getServerSession 사용
+- `src/app/api/portfolio/[id]/route.ts` - getServerSession 사용
+- `src/app/api/upload/route.ts` - getServerSession 사용
+- `package.json` - next-auth 버전 다운그레이드
+
+**현재 상태:**
+- NextAuth 서버 에러 해결됨 ✅
+- DB에 admin 계정 존재 확인 ✅
+- 비밀번호 해시 검증 통과 ✅
+- 로그인 테스트 필요 (아이디/비밀번호 불일치 에러 발생 중)
+
+**관리자 계정:**
+- 이메일: `admin@partybeen.com`
+- 비밀번호: `partybeen2024!`
+
+**다음 단계:**
+- 로그인 문제 최종 해결
+- 포트폴리오 관리 기능 테스트
