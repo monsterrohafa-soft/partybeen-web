@@ -4,9 +4,11 @@ import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 
 export const authOptions: AuthOptions = {
+  debug: process.env.NODE_ENV === 'development',
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/admin/login',
+    error: '/admin/login',
   },
   providers: [
     CredentialsProvider({
