@@ -158,6 +158,43 @@ src/
 - 이메일: `admin@partybeen.com`
 - 비밀번호: `partybeen2024!`
 
+### 2024-12-10: 포트폴리오 DB 연동 및 관리자 계정 변경
+
+**문제:**
+- 포트폴리오 공개 페이지는 하드코딩된 `src/data/portfolio.ts` 파일 사용
+- 관리자 페이지는 Prisma DB 사용
+- 두 데이터 소스가 달라서 관리자에서 등록해도 공개 페이지에 안 보임
+
+**해결:**
+1. 포트폴리오 페이지를 DB에서 데이터 가져오도록 수정
+2. GalleryGrid 컴포넌트 타입 정의 분리 (DB 구조 호환)
+3. 시드 API로 기존 18개 포트폴리오 데이터 DB 마이그레이션
+4. 관리자 계정을 admin/admin으로 변경
+
+**수정된 파일:**
+- `src/app/portfolio/page.tsx` - Prisma DB에서 데이터 가져오도록 변경
+- `src/components/portfolio/GalleryGrid.tsx` - 독립적인 타입 정의
+- `src/app/api/seed/route.ts` - 시드 API 추가 (카테고리 + 포트폴리오 + 관리자 계정)
+- `prisma/seed.ts` - 시드 스크립트 업데이트
+- `src/auth.ts` - 아이디 로그인으로 변경
+- `src/app/admin/login/page.tsx` - 아이디 입력 UI로 변경
+
+**현재 관리자 계정:**
+- **아이디**: `admin`
+- **비밀번호**: `admin`
+- **로그인 URL**: https://partybeen-web.vercel.app/admin/login
+
+**시드 실행 방법:**
+```
+https://partybeen-web.vercel.app/api/seed?secret=partybeen2024seed
+```
+
+**시드 실행 결과:**
+- 카테고리 4개 생성 (CATERING, FOOD BOX, LUNCH BOX, BOX CATERING)
+- 포트폴리오 18개 등록
+- 관리자 계정 생성/업데이트
+
 **다음 단계:**
-- 로그인 문제 최종 해결
 - 포트폴리오 관리 기능 테스트
+- 실제 이미지 Vercel Blob으로 업로드
+- SEO 최적화
