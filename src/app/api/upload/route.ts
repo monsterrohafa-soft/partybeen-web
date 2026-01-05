@@ -33,29 +33,18 @@ async function addWatermark(
       console.error('Failed to fetch logo:', logoUrl);
       return imageBuffer;
     }
-    const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
-    const logo = await Jimp.read(logoBuffer);
+    const logoArrayBuffer = await logoResponse.arrayBuffer();
+    const logo = await Jimp.read(Buffer.from(logoArrayBuffer));
 
     // 워터마크 크기 조절 (이미지의 30%)
     const watermarkWidth = Math.round(imageWidth * 0.3);
-    const scale = watermarkWidth / logo.width;
-    const watermarkHeight = Math.round(logo.height * scale);
+    const watermarkHeight = Math.round((logo.height / logo.width) * watermarkWidth);
 
     logo.resize({ w: watermarkWidth, h: watermarkHeight });
 
-    // 로고를 흰색으로 변환 + 반투명 처리
-    // 각 픽셀을 흰색으로 변환하고 투명도 적용
-    logo.scan(0, 0, logo.width, logo.height, (x, y, idx) => {
-      const alpha = logo.bitmap.data[idx + 3];
-      if (alpha > 0) {
-        // 흰색으로 변환
-        logo.bitmap.data[idx] = 255;     // R
-        logo.bitmap.data[idx + 1] = 255; // G
-        logo.bitmap.data[idx + 2] = 255; // B
-        // 투명도 60%
-        logo.bitmap.data[idx + 3] = Math.round(alpha * 0.6);
-      }
-    });
+    // 로고 색상 반전 (어두운 색 → 밝은 색) + 투명도 적용
+    logo.invert();
+    logo.opacity(0.6);
 
     // 중앙 배치
     const x = Math.round((imageWidth - watermarkWidth) / 2);
@@ -65,8 +54,8 @@ async function addWatermark(
     image.composite(logo, x, y);
 
     // JPEG로 변환
-    const resultBuffer = await image.getBuffer('image/jpeg', { quality: 90 });
-    return resultBuffer;
+    const resultBuffer = await image.getBuffer('image/jpeg');
+    return Buffer.from(resultBuffer);
   } catch (error) {
     console.error('Watermark processing error:', error);
     return imageBuffer;
