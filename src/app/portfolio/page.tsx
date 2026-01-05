@@ -39,6 +39,7 @@ async function getPortfolios(categorySlug?: string) {
     description: p.description,
     image: p.imageUrl, // DB의 imageUrl을 image로 매핑
     category: p.category?.slug || 'catering',
+    externalUrl: p.externalUrl, // 언론보도용 외부 링크
   }));
 }
 

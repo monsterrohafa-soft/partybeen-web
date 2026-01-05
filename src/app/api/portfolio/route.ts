@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, imageUrl, categoryId } = body;
+    const { title, description, imageUrl, categoryId, externalUrl } = body;
 
     if (!title || !imageUrl || !categoryId) {
       return NextResponse.json(
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
         description,
         imageUrl,
         categoryId,
+        externalUrl: externalUrl || null,
         orderIndex: (maxOrder?.orderIndex ?? 0) + 1,
       },
       include: {

@@ -12,6 +12,8 @@ import {
   X,
   Loader2,
   Image as ImageIcon,
+  Link as LinkIcon,
+  ExternalLink,
 } from 'lucide-react';
 
 interface Category {
@@ -26,6 +28,7 @@ interface Portfolio {
   title: string;
   description?: string;
   imageUrl: string;
+  externalUrl?: string;
   categoryId: string;
   category: Category;
   orderIndex: number;
@@ -43,13 +46,22 @@ export default function AdminPortfolioPage() {
   const [editingItem, setEditingItem] = useState<Portfolio | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // 언론보도 URL 입력용
+  const [urlInput, setUrlInput] = useState('');
+  const [parsingUrl, setParsingUrl] = useState(false);
+
   // 폼 상태
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     imageUrl: '',
     categoryId: '',
+    externalUrl: '',
   });
+
+  // 현재 선택된 카테고리가 언론보도인지 확인
+  const selectedCategoryData = categories.find(c => c.id === formData.categoryId);
+  const isPressCategory = selectedCategoryData?.slug === 'press';
 
   // 데이터 로드
   const loadData = useCallback(async () => {
@@ -78,6 +90,40 @@ export default function AdminPortfolioPage() {
       loadData();
     }
   }, [status, router, loadData]);
+
+  // URL에서 OG 메타데이터 파싱 (언론보도용)
+  const handleParseUrl = async () => {
+    if (!urlInput.trim()) {
+      alert('URL을 입력해주세요');
+      return;
+    }
+
+    setParsingUrl(true);
+    try {
+      const res = await fetch('/api/og-parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setFormData(prev => ({
+          ...prev,
+          title: data.title || '',
+          description: data.siteName || '', // 언론사명을 설명에
+          imageUrl: data.image || '',
+          externalUrl: urlInput.trim(),
+        }));
+      } else {
+        alert(data.error || 'URL 파싱에 실패했습니다');
+      }
+    } catch {
+      alert('URL 파싱 중 오류가 발생했습니다');
+    } finally {
+      setParsingUrl(false);
+    }
+  };
 
   // 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,7 +175,8 @@ export default function AdminPortfolioPage() {
       if (res.ok) {
         setShowModal(false);
         setEditingItem(null);
-        setFormData({ title: '', description: '', imageUrl: '', categoryId: '' });
+        setFormData({ title: '', description: '', imageUrl: '', categoryId: '', externalUrl: '' });
+        setUrlInput('');
         loadData();
       } else {
         const error = await res.json();
@@ -162,14 +209,17 @@ export default function AdminPortfolioPage() {
       description: item.description || '',
       imageUrl: item.imageUrl,
       categoryId: item.categoryId,
+      externalUrl: item.externalUrl || '',
     });
+    setUrlInput(item.externalUrl || '');
     setShowModal(true);
   };
 
   // 새 항목 모달 열기
   const openNewModal = () => {
     setEditingItem(null);
-    setFormData({ title: '', description: '', imageUrl: '', categoryId: categories[0]?.id || '' });
+    setFormData({ title: '', description: '', imageUrl: '', categoryId: categories[0]?.id || '', externalUrl: '' });
+    setUrlInput('');
     setShowModal(true);
   };
 
@@ -313,10 +363,61 @@ export default function AdminPortfolioPage() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* 이미지 업로드 */}
+              {/* 카테고리 (먼저 선택해야 모드 결정) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  이미지 *
+                  카테고리 *
+                </label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => {
+                    setFormData((prev) => ({ ...prev, categoryId: e.target.value, imageUrl: '', title: '', description: '', externalUrl: '' }));
+                    setUrlInput('');
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
+                >
+                  <option value="">선택하세요</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 언론보도 카테고리: URL 입력 모드 */}
+              {isPressCategory && (
+                <div className="bg-blue-50 p-4 rounded-lg space-y-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <LinkIcon className="w-5 h-5" />
+                    <span className="font-medium">언론보도 URL 입력</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
+                      placeholder="https://news.example.com/article..."
+                    />
+                    <button
+                      onClick={handleParseUrl}
+                      disabled={parsingUrl}
+                      className="px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {parsingUrl ? <Loader2 className="w-5 h-5 animate-spin" /> : '불러오기'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-blue-600">
+                    URL을 입력하고 불러오기를 누르면 제목과 썸네일이 자동으로 가져와집니다
+                  </p>
+                </div>
+              )}
+
+              {/* 이미지 미리보기 (언론보도) 또는 이미지 업로드 (일반) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {isPressCategory ? '썸네일 미리보기' : '이미지 *'}
                 </label>
                 {formData.imageUrl ? (
                   <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
@@ -326,14 +427,26 @@ export default function AdminPortfolioPage() {
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
-                    <button
-                      onClick={() => setFormData((prev) => ({ ...prev, imageUrl: '' }))}
-                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    {!isPressCategory && (
+                      <button
+                        onClick={() => setFormData((prev) => ({ ...prev, imageUrl: '' }))}
+                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                    {isPressCategory && formData.externalUrl && (
+                      <a
+                        href={formData.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-2 right-2 p-2 bg-white/90 rounded-full shadow hover:bg-white transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4 text-gray-700" />
+                      </a>
+                    )}
                   </div>
-                ) : (
+                ) : !isPressCategory ? (
                   <label className="block cursor-pointer">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#025566] transition-colors">
                       {uploading ? (
@@ -358,6 +471,11 @@ export default function AdminPortfolioPage() {
                       disabled={uploading}
                     />
                   </label>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-400">
+                    <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                    <p className="text-sm">URL을 입력하면 썸네일이 표시됩니다</p>
+                  </div>
                 )}
               </div>
 
@@ -373,45 +491,24 @@ export default function AdminPortfolioPage() {
                     setFormData((prev) => ({ ...prev, title: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                  placeholder="포트폴리오 제목"
+                  placeholder={isPressCategory ? '기사 제목' : '포트폴리오 제목'}
                 />
               </div>
 
               {/* 설명 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  설명 (선택)
+                  {isPressCategory ? '언론사명 (선택)' : '설명 (선택)'}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, description: e.target.value }))
                   }
-                  rows={3}
+                  rows={isPressCategory ? 1 : 3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566] resize-none"
-                  placeholder="간단한 설명"
+                  placeholder={isPressCategory ? '예: 부산일보' : '간단한 설명'}
                 />
-              </div>
-
-              {/* 카테고리 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  카테고리 *
-                </label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, categoryId: e.target.value }))
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                >
-                  <option value="">선택하세요</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 

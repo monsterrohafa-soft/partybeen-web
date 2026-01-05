@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
 
 // DB에서 가져온 포트폴리오 아이템 타입
 interface PortfolioItem {
@@ -11,6 +11,7 @@ interface PortfolioItem {
   description?: string | null;
   image: string;
   category: string;
+  externalUrl?: string | null; // 언론보도용 외부 링크
 }
 
 interface GalleryGridProps {
@@ -19,6 +20,17 @@ interface GalleryGridProps {
 
 export default function GalleryGrid({ items }: GalleryGridProps) {
   const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+
+  // 아이템 클릭 핸들러
+  const handleItemClick = (item: PortfolioItem) => {
+    if (item.externalUrl) {
+      // 언론보도: 외부 링크로 이동
+      window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // 일반 포트폴리오: 모달 열기
+      setSelectedItem(item);
+    }
+  };
 
   return (
     <>
@@ -31,7 +43,7 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
             className="group cursor-pointer"
-            onClick={() => setSelectedItem(item)}
+            onClick={() => handleItemClick(item)}
           >
             <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,12 +61,20 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
                   {item.title}
                 </span>
               </div>
+
+              {/* 외부 링크 아이콘 (언론보도) */}
+              {item.externalUrl && (
+                <div className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ExternalLink className="w-4 h-4 text-gray-700" />
+                </div>
+              )}
             </div>
 
             {/* 제목 (모바일) */}
             <div className="mt-2 sm:hidden">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
+              <h3 className="text-sm font-medium text-gray-900 truncate flex items-center gap-1">
                 {item.title}
+                {item.externalUrl && <ExternalLink className="w-3 h-3 text-gray-400" />}
               </h3>
             </div>
           </motion.div>
