@@ -3,19 +3,22 @@ import { getServerSession } from 'next-auth';
 import { put } from '@vercel/blob';
 import { authOptions } from '@/auth';
 import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs/promises';
 
-// 워터마크 로고 경로
+// 워터마크 로고 URL (public 폴더 기준)
 const WATERMARK_LOGOS: Record<string, string> = {
-  partybeen: 'public/logo/partybeen.png',
-  chef: 'public/logo/chef.png',
+  partybeen: '/logo/partybeen.png',
+  chef: '/logo/chef.png',
 };
 
 // 로고를 흰색으로 변환하고 반투명 처리
-async function prepareWatermark(logoPath: string, targetWidth: number): Promise<Buffer> {
-  const fullPath = path.join(process.cwd(), logoPath);
-  const logoBuffer = await fs.readFile(fullPath);
+async function prepareWatermark(logoUrl: string, baseUrl: string, targetWidth: number): Promise<Buffer> {
+  // fetch로 로고 파일 가져오기
+  const fullUrl = `${baseUrl}${logoUrl}`;
+  const response = await fetch(fullUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch logo: ${fullUrl}`);
+  }
+  const logoBuffer = Buffer.from(await response.arrayBuffer());
 
   // 로고 메타데이터 가져오기
   const logoMeta = await sharp(logoBuffer).metadata();
@@ -27,8 +30,6 @@ async function prepareWatermark(logoPath: string, targetWidth: number): Promise<
   const watermarkHeight = Math.round((logoMeta.height || 200) * scale);
 
   // 로고를 흰색으로 변환 + 리사이즈
-  // 1. 알파 채널 추출
-  // 2. 흰색 이미지에 알파 채널 적용
   const resizedLogo = await sharp(logoBuffer)
     .resize(watermarkWidth, watermarkHeight, { fit: 'inside' })
     .toBuffer();
@@ -39,7 +40,7 @@ async function prepareWatermark(logoPath: string, targetWidth: number): Promise<
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  // RGBA 데이터를 흰색으로 변환 (알파는 유지하되 50% 투명도)
+  // RGBA 데이터를 흰색으로 변환 (알파는 유지하되 60% 투명도)
   const whiteData = Buffer.alloc(data.length);
   for (let i = 0; i < data.length; i += 4) {
     const alpha = data[i + 3];
@@ -63,7 +64,8 @@ async function prepareWatermark(logoPath: string, targetWidth: number): Promise<
 // 이미지에 워터마크 합성
 async function addWatermark(
   imageBuffer: Buffer,
-  watermarkType: string
+  watermarkType: string,
+  baseUrl: string
 ): Promise<Buffer> {
   if (!watermarkType || watermarkType === 'none' || !WATERMARK_LOGOS[watermarkType]) {
     return imageBuffer;
@@ -77,6 +79,7 @@ async function addWatermark(
   // 워터마크 준비 (흰색 변환 + 크기 조절)
   const watermarkBuffer = await prepareWatermark(
     WATERMARK_LOGOS[watermarkType],
+    baseUrl,
     imageWidth
   );
 
@@ -144,7 +147,10 @@ export async function POST(request: NextRequest) {
     // 워터마크 추가
     if (watermark && watermark !== 'none') {
       try {
-        imageBuffer = await addWatermark(imageBuffer, watermark);
+        // 요청 URL에서 base URL 추출
+        const url = new URL(request.url);
+        const baseUrl = `${url.protocol}//${url.host}`;
+        imageBuffer = await addWatermark(imageBuffer, watermark, baseUrl);
       } catch (wmError) {
         console.error('Watermark error:', wmError);
         // 워터마크 실패해도 원본 업로드 진행
