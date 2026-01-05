@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // 파일을 Buffer로 변환
     const arrayBuffer = await file.arrayBuffer();
-    let imageBuffer = Buffer.from(arrayBuffer);
+    let imageBuffer: Buffer = Buffer.from(arrayBuffer);
 
     // 워터마크 추가
     if (watermark && watermark !== 'none') {
@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
         // 요청 URL에서 base URL 추출
         const url = new URL(request.url);
         const baseUrl = `${url.protocol}//${url.host}`;
-        imageBuffer = await addWatermark(imageBuffer, watermark, baseUrl);
+        const result = await addWatermark(imageBuffer, watermark, baseUrl);
+        imageBuffer = Buffer.from(result);
       } catch (wmError) {
         console.error('Watermark error:', wmError);
         // 워터마크 실패해도 원본 업로드 진행
