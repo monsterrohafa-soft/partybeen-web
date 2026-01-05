@@ -61,6 +61,9 @@ export default function AdminPortfolioPage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
 
+  // 워터마크 선택
+  const [selectedWatermark, setSelectedWatermark] = useState<'none' | 'partybeen' | 'chef'>('none');
+
   // 폼 상태
   const [formData, setFormData] = useState({
     title: '',
@@ -192,6 +195,7 @@ export default function AdminPortfolioPage() {
     setUploading(true);
     const formDataUpload = new FormData();
     formDataUpload.append('file', file);
+    formDataUpload.append('watermark', selectedWatermark);
 
     try {
       const res = await fetch('/api/upload', {
@@ -239,6 +243,7 @@ export default function AdminPortfolioPage() {
         setAvailableImages([]);
         setSelectedImageIndex(0);
         setImagePosition({ x: 50, y: 50 });
+        setSelectedWatermark('partybeen');
         loadData();
       } else {
         const error = await res.json();
@@ -292,6 +297,7 @@ export default function AdminPortfolioPage() {
     setAvailableImages([]);
     setSelectedImageIndex(0);
     setImagePosition({ x: 50, y: 50 });
+    setSelectedWatermark('partybeen'); // 기본값: 파티빈 워터마크
     setShowModal(true);
   };
 
@@ -482,6 +488,53 @@ export default function AdminPortfolioPage() {
                   </div>
                   <p className="text-xs text-blue-600">
                     URL을 입력하고 불러오기를 누르면 제목과 썸네일이 자동으로 가져와집니다
+                  </p>
+                </div>
+              )}
+
+              {/* 워터마크 선택 (일반 포트폴리오만) */}
+              {!isPressCategory && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    워터마크 로고 선택
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedWatermark('none')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        selectedWatermark === 'none'
+                          ? 'border-[#025566] bg-[#025566]/5 text-[#025566]'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      없음
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedWatermark('partybeen')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        selectedWatermark === 'partybeen'
+                          ? 'border-[#025566] bg-[#025566]/5 text-[#025566]'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      파티빈
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedWatermark('chef')}
+                      className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        selectedWatermark === 'chef'
+                          ? 'border-[#025566] bg-[#025566]/5 text-[#025566]'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                    >
+                      쉐프의도시락
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    이미지 업로드 시 선택한 로고가 워터마크로 자동 삽입됩니다
                   </p>
                 </div>
               )}
