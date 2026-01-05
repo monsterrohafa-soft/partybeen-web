@@ -10,6 +10,7 @@ interface PortfolioItem {
   title: string;
   description?: string | null;
   image: string;
+  imagePosition?: string | null; // 이미지 위치 (예: "50% 30%")
   category: string;
   externalUrl?: string | null; // 언론보도용 외부 링크
 }
@@ -51,6 +52,7 @@ export default function GalleryGrid({ items }: GalleryGridProps) {
                 src={item.image}
                 alt={item.title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                style={{ objectPosition: item.imagePosition || '50% 50%' }}
               />
               {/* 오버레이 */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />

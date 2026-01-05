@@ -56,11 +56,32 @@ export async function POST(request: NextRequest) {
       $('title').text() ||
       '';
 
-    const image =
-      $('meta[property="og:image"]').attr('content') ||
-      $('meta[name="og:image"]').attr('content') ||
-      $('meta[name="twitter:image"]').attr('content') ||
-      '';
+    // 모든 이미지 수집 (OG, Twitter, 본문 이미지)
+    const images: string[] = [];
+
+    // OG 이미지들
+    $('meta[property="og:image"]').each((_, el) => {
+      const content = $(el).attr('content');
+      if (content) images.push(content);
+    });
+    $('meta[name="og:image"]').each((_, el) => {
+      const content = $(el).attr('content');
+      if (content && !images.includes(content)) images.push(content);
+    });
+
+    // Twitter 이미지
+    const twitterImage = $('meta[name="twitter:image"]').attr('content');
+    if (twitterImage && !images.includes(twitterImage)) images.push(twitterImage);
+
+    // 본문의 주요 이미지들 (최대 5개 추가)
+    $('article img, .article img, .content img, .post img, #article img').each((_, el) => {
+      const src = $(el).attr('src');
+      if (src && !images.includes(src) && images.length < 10) {
+        images.push(src);
+      }
+    });
+
+    const image = images[0] || '';
 
     const siteName =
       $('meta[property="og:site_name"]').attr('content') ||
@@ -74,16 +95,19 @@ export async function POST(request: NextRequest) {
       $('meta[name="description"]').attr('content') ||
       '';
 
-    // 이미지 URL이 상대 경로인 경우 절대 경로로 변환
-    let absoluteImage = image;
-    if (image && !image.startsWith('http')) {
-      const baseUrl = new URL(url);
-      absoluteImage = new URL(image, baseUrl.origin).href;
-    }
+    // 이미지 URL들을 절대 경로로 변환
+    const baseUrl = new URL(url);
+    const absoluteImages = images.map((img) => {
+      if (img && !img.startsWith('http')) {
+        return new URL(img, baseUrl.origin).href;
+      }
+      return img;
+    }).filter(Boolean);
 
     return NextResponse.json({
       title: title.trim(),
-      image: absoluteImage,
+      image: absoluteImages[0] || '',
+      images: absoluteImages, // 모든 이미지 배열
       siteName: siteName.trim(),
       description: description.trim(),
     });

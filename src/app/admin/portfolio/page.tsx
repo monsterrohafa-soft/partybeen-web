@@ -14,6 +14,9 @@ import {
   Image as ImageIcon,
   Link as LinkIcon,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Move,
 } from 'lucide-react';
 
 interface Category {
@@ -28,6 +31,7 @@ interface Portfolio {
   title: string;
   description?: string;
   imageUrl: string;
+  imagePosition?: string;
   externalUrl?: string;
   categoryId: string;
   category: Category;
@@ -49,12 +53,20 @@ export default function AdminPortfolioPage() {
   // 언론보도 URL 입력용
   const [urlInput, setUrlInput] = useState('');
   const [parsingUrl, setParsingUrl] = useState(false);
+  const [availableImages, setAvailableImages] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // 이미지 위치 조정용
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
 
   // 폼 상태
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     imageUrl: '',
+    imagePosition: '50% 50%',
     categoryId: '',
     externalUrl: '',
   });
@@ -108,11 +120,18 @@ export default function AdminPortfolioPage() {
 
       const data = await res.json();
       if (res.ok) {
+        // 이미지 목록 저장
+        const images = data.images || (data.image ? [data.image] : []);
+        setAvailableImages(images);
+        setSelectedImageIndex(0);
+        setImagePosition({ x: 50, y: 50 });
+
         setFormData(prev => ({
           ...prev,
           title: data.title || '',
           description: data.siteName || '', // 언론사명을 설명에
-          imageUrl: data.image || '',
+          imageUrl: images[0] || '',
+          imagePosition: '50% 50%',
           externalUrl: urlInput.trim(),
         }));
       } else {
@@ -122,6 +141,46 @@ export default function AdminPortfolioPage() {
       alert('URL 파싱 중 오류가 발생했습니다');
     } finally {
       setParsingUrl(false);
+    }
+  };
+
+  // 이미지 선택 변경
+  const handleImageSelect = (index: number) => {
+    setSelectedImageIndex(index);
+    setImagePosition({ x: 50, y: 50 });
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: availableImages[index] || '',
+      imagePosition: '50% 50%',
+    }));
+  };
+
+  // 이미지 드래그로 위치 조정
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isPressCategory) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const dx = (e.clientX - dragStart.x) * 0.5;
+    const dy = (e.clientY - dragStart.y) * 0.5;
+
+    setImagePosition(prev => ({
+      x: Math.max(0, Math.min(100, prev.x - dx)),
+      y: Math.max(0, Math.min(100, prev.y - dy)),
+    }));
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setFormData(prev => ({
+        ...prev,
+        imagePosition: `${imagePosition.x}% ${imagePosition.y}%`,
+      }));
     }
   };
 
@@ -175,8 +234,11 @@ export default function AdminPortfolioPage() {
       if (res.ok) {
         setShowModal(false);
         setEditingItem(null);
-        setFormData({ title: '', description: '', imageUrl: '', categoryId: '', externalUrl: '' });
+        setFormData({ title: '', description: '', imageUrl: '', imagePosition: '50% 50%', categoryId: '', externalUrl: '' });
         setUrlInput('');
+        setAvailableImages([]);
+        setSelectedImageIndex(0);
+        setImagePosition({ x: 50, y: 50 });
         loadData();
       } else {
         const error = await res.json();
@@ -204,22 +266,32 @@ export default function AdminPortfolioPage() {
   // 수정 모달 열기
   const openEditModal = (item: Portfolio) => {
     setEditingItem(item);
+    const pos = item.imagePosition?.split(' ') || ['50%', '50%'];
+    const posX = parseFloat(pos[0]) || 50;
+    const posY = parseFloat(pos[1]) || 50;
+    setImagePosition({ x: posX, y: posY });
     setFormData({
       title: item.title,
       description: item.description || '',
       imageUrl: item.imageUrl,
+      imagePosition: item.imagePosition || '50% 50%',
       categoryId: item.categoryId,
       externalUrl: item.externalUrl || '',
     });
     setUrlInput(item.externalUrl || '');
+    setAvailableImages(item.imageUrl ? [item.imageUrl] : []);
+    setSelectedImageIndex(0);
     setShowModal(true);
   };
 
   // 새 항목 모달 열기
   const openNewModal = () => {
     setEditingItem(null);
-    setFormData({ title: '', description: '', imageUrl: '', categoryId: categories[0]?.id || '', externalUrl: '' });
+    setFormData({ title: '', description: '', imageUrl: '', imagePosition: '50% 50%', categoryId: categories[0]?.id || '', externalUrl: '' });
     setUrlInput('');
+    setAvailableImages([]);
+    setSelectedImageIndex(0);
+    setImagePosition({ x: 50, y: 50 });
     setShowModal(true);
   };
 
@@ -418,14 +490,27 @@ export default function AdminPortfolioPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {isPressCategory ? '썸네일 미리보기' : '이미지 *'}
+                  {isPressCategory && formData.imageUrl && (
+                    <span className="ml-2 text-xs text-gray-400 font-normal">
+                      드래그하여 위치 조정
+                    </span>
+                  )}
                 </label>
                 {formData.imageUrl ? (
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                  <div
+                    className={`relative aspect-video rounded-lg overflow-hidden bg-gray-100 ${isPressCategory ? 'cursor-move select-none' : ''}`}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={formData.imageUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
+                      style={{ objectPosition: `${imagePosition.x}% ${imagePosition.y}%` }}
+                      draggable={false}
                     />
                     {!isPressCategory && (
                       <button
@@ -435,12 +520,19 @@ export default function AdminPortfolioPage() {
                         <X className="w-4 h-4" />
                       </button>
                     )}
+                    {isPressCategory && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-black/50 rounded text-white text-xs flex items-center gap-1">
+                        <Move className="w-3 h-3" />
+                        위치: {Math.round(imagePosition.x)}%, {Math.round(imagePosition.y)}%
+                      </div>
+                    )}
                     {isPressCategory && formData.externalUrl && (
                       <a
                         href={formData.externalUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="absolute bottom-2 right-2 p-2 bg-white/90 rounded-full shadow hover:bg-white transition-colors"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="w-4 h-4 text-gray-700" />
                       </a>
@@ -475,6 +567,45 @@ export default function AdminPortfolioPage() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-400">
                     <ImageIcon className="w-8 h-8 mx-auto mb-2" />
                     <p className="text-sm">URL을 입력하면 썸네일이 표시됩니다</p>
+                  </div>
+                )}
+
+                {/* 이미지 선택 UI (언론보도, 여러 이미지 있을 때) */}
+                {isPressCategory && availableImages.length > 1 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">
+                      다른 이미지 선택 ({selectedImageIndex + 1}/{availableImages.length})
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleImageSelect(Math.max(0, selectedImageIndex - 1))}
+                        disabled={selectedImageIndex === 0}
+                        className="p-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-30"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <div className="flex gap-2 overflow-x-auto flex-1 py-1">
+                        {availableImages.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleImageSelect(idx)}
+                            className={`flex-shrink-0 w-16 h-12 rounded overflow-hidden border-2 transition-colors ${
+                              idx === selectedImageIndex ? 'border-[#025566]' : 'border-transparent hover:border-gray-300'
+                            }`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img} alt={`옵션 ${idx + 1}`} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => handleImageSelect(Math.min(availableImages.length - 1, selectedImageIndex + 1))}
+                        disabled={selectedImageIndex === availableImages.length - 1}
+                        className="p-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-30"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

@@ -38,6 +38,7 @@ async function getPortfolios(categorySlug?: string) {
     title: p.title,
     description: p.description,
     image: p.imageUrl, // DB의 imageUrl을 image로 매핑
+    imagePosition: p.imagePosition, // 이미지 위치
     category: p.category?.slug || 'catering',
     externalUrl: p.externalUrl, // 언론보도용 외부 링크
   }));
