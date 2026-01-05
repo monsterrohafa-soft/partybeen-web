@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { BRAND, CONTACT } from '@/lib/constants';
@@ -68,9 +69,16 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
+          className="mb-6"
         >
-          <span className="block">{BRAND.name}</span>
+          <Image
+            src="/logo/main.png"
+            alt={BRAND.name}
+            width={500}
+            height={120}
+            className="mx-auto w-[280px] sm:w-[360px] md:w-[450px] lg:w-[500px] h-auto brightness-0 invert"
+            priority
+          />
         </motion.h1>
 
         <motion.p
