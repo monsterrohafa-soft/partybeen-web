@@ -15,6 +15,7 @@ export const CATEGORIES = [
   { id: 'food-box', name: 'FOOD BOX', slug: 'food-box' },
   { id: 'lunch-box', name: 'LUNCH BOX', slug: 'lunch-box' },
   { id: 'box-catering', name: 'BOX CATERING', slug: 'box-catering' },
+  { id: 'press', name: '언론보도', slug: 'press' },
 ] as const;
 
 // 네비게이션 메뉴
