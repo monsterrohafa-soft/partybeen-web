@@ -2,6 +2,76 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { put } from '@vercel/blob';
 import { authOptions } from '@/auth';
+import { Jimp } from 'jimp';
+
+// 워터마크 로고 URL (public 폴더 기준)
+const WATERMARK_LOGOS: Record<string, string> = {
+  partybeen: '/logo/partybeen.png',
+  chef: '/logo/chef.png',
+};
+
+// 이미지에 워터마크 합성
+async function addWatermark(
+  imageBuffer: Buffer,
+  watermarkType: string,
+  baseUrl: string
+): Promise<Buffer> {
+  if (!watermarkType || watermarkType === 'none' || !WATERMARK_LOGOS[watermarkType]) {
+    return imageBuffer;
+  }
+
+  try {
+    // 원본 이미지 로드
+    const image = await Jimp.read(imageBuffer);
+    const imageWidth = image.width;
+    const imageHeight = image.height;
+
+    // 워터마크 로고 가져오기
+    const logoUrl = `${baseUrl}${WATERMARK_LOGOS[watermarkType]}`;
+    const logoResponse = await fetch(logoUrl);
+    if (!logoResponse.ok) {
+      console.error('Failed to fetch logo:', logoUrl);
+      return imageBuffer;
+    }
+    const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+    const logo = await Jimp.read(logoBuffer);
+
+    // 워터마크 크기 조절 (이미지의 30%)
+    const watermarkWidth = Math.round(imageWidth * 0.3);
+    const scale = watermarkWidth / logo.width;
+    const watermarkHeight = Math.round(logo.height * scale);
+
+    logo.resize({ w: watermarkWidth, h: watermarkHeight });
+
+    // 로고를 흰색으로 변환 + 반투명 처리
+    // 각 픽셀을 흰색으로 변환하고 투명도 적용
+    logo.scan(0, 0, logo.width, logo.height, (x, y, idx) => {
+      const alpha = logo.bitmap.data[idx + 3];
+      if (alpha > 0) {
+        // 흰색으로 변환
+        logo.bitmap.data[idx] = 255;     // R
+        logo.bitmap.data[idx + 1] = 255; // G
+        logo.bitmap.data[idx + 2] = 255; // B
+        // 투명도 60%
+        logo.bitmap.data[idx + 3] = Math.round(alpha * 0.6);
+      }
+    });
+
+    // 중앙 배치
+    const x = Math.round((imageWidth - watermarkWidth) / 2);
+    const y = Math.round((imageHeight - watermarkHeight) / 2);
+
+    // 합성
+    image.composite(logo, x, y);
+
+    // JPEG로 변환
+    const resultBuffer = await image.getBuffer('image/jpeg', { quality: 90 });
+    return resultBuffer;
+  } catch (error) {
+    console.error('Watermark processing error:', error);
+    return imageBuffer;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +83,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    // 워터마크 파라미터는 받지만 현재는 미사용 (추후 클라이언트 사이드 처리)
-    // const watermark = formData.get('watermark') as string || 'none';
+    const watermark = formData.get('watermark') as string || 'none';
 
     if (!file) {
       return NextResponse.json({ error: '파일이 없습니다' }, { status: 400 });
@@ -38,9 +107,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 파일을 Buffer로 변환
+    const arrayBuffer = await file.arrayBuffer();
+    let imageBuffer = Buffer.from(arrayBuffer);
+
+    // 워터마크 추가
+    if (watermark && watermark !== 'none') {
+      try {
+        // 요청 URL에서 base URL 추출
+        const url = new URL(request.url);
+        const baseUrl = `${url.protocol}//${url.host}`;
+        imageBuffer = await addWatermark(imageBuffer, watermark, baseUrl);
+      } catch (wmError) {
+        console.error('Watermark error:', wmError);
+        // 워터마크 실패해도 원본 업로드 진행
+      }
+    }
+
     // Vercel Blob에 업로드
-    const blob = await put(`portfolio/${Date.now()}-${file.name}`, file, {
+    const fileName = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+    const blob = await put(`portfolio/${Date.now()}-${fileName}`, imageBuffer, {
       access: 'public',
+      contentType: 'image/jpeg',
     });
 
     return NextResponse.json({

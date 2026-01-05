@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X, Phone, ChevronRight } from 'lucide-react';
 import { NAV_ITEMS, CONTACT, BRAND } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,9 +27,14 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* 로고 */}
           <Link href="/" className="flex items-center group">
-            <span className="text-xl sm:text-2xl font-bold tracking-wider text-[#013A46]">
-              {BRAND.name}
-            </span>
+            <Image
+              src="/logo/main.png"
+              alt={BRAND.name}
+              width={200}
+              height={48}
+              className="h-8 sm:h-10 w-auto"
+              priority
+            />
           </Link>
 
           {/* 데스크톱 네비게이션 */}
