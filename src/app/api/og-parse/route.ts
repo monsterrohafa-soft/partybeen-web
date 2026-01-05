@@ -25,11 +25,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '유효하지 않은 URL입니다' }, { status: 400 });
     }
 
-    // HTML 가져오기
+    // HTML 가져오기 (실제 브라우저처럼 보이게)
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; PartyBeen/1.0)',
-        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
       },
     });
 
@@ -43,25 +47,30 @@ export async function POST(request: NextRequest) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // OG 메타데이터 추출
+    // OG 메타데이터 추출 (property 또는 name 속성 모두 지원)
     const title =
       $('meta[property="og:title"]').attr('content') ||
+      $('meta[name="og:title"]').attr('content') ||
       $('meta[name="twitter:title"]').attr('content') ||
+      $('meta[name="title"]').attr('content') ||
       $('title').text() ||
       '';
 
     const image =
       $('meta[property="og:image"]').attr('content') ||
+      $('meta[name="og:image"]').attr('content') ||
       $('meta[name="twitter:image"]').attr('content') ||
       '';
 
     const siteName =
       $('meta[property="og:site_name"]').attr('content') ||
+      $('meta[name="og:site_name"]').attr('content') ||
       new URL(url).hostname.replace('www.', '') ||
       '';
 
     const description =
       $('meta[property="og:description"]').attr('content') ||
+      $('meta[name="og:description"]').attr('content') ||
       $('meta[name="description"]').attr('content') ||
       '';
 
