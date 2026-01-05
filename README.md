@@ -3,23 +3,14 @@
 파티빈 케이터링 공식 웹사이트
 
 ## 기술 스택
-- Next.js 16
+
+- Next.js 15 (App Router)
 - TypeScript
 - Tailwind CSS
+- Prisma + Neon Postgres
+- NextAuth.js
+- Vercel Blob Storage
 - Framer Motion
-
-## 개발 환경 설정
-
-```bash
-# 패키지 설치
-npm install
-
-# 개발 서버 실행
-npm run dev
-
-# 빌드
-npm run build
-```
 
 ## 배포
 
@@ -35,11 +26,26 @@ git push
 
 ```
 src/
-├── app/                    # 페이지
-├── components/             # 컴포넌트
-├── data/                   # 데이터
-└── lib/                    # 유틸리티
+├── app/
+│   ├── admin/          # 관리자 페이지
+│   ├── api/            # API 라우트
+│   ├── portfolio/      # 포트폴리오 페이지
+│   └── ...
+├── components/         # 컴포넌트
+├── lib/                # 유틸리티
+└── data/               # 정적 데이터
 ```
+
+## 관리자 페이지
+
+- **URL**: https://partybeen.vercel.app/admin
+- **계정**: admin / admin
+
+### 기능
+
+- 포트폴리오 관리 (추가/수정/삭제)
+- 언론보도 등록 (URL 입력 → 자동 파싱)
+- 이미지 업로드 (Vercel Blob)
 
 ## 연락처
 
@@ -47,154 +53,6 @@ src/
 - 이메일: partybeen@naver.com
 - 카카오톡: https://pf.kakao.com/_DTqwT
 
----
-
 ## 작업 기록
 
-### 2024-12-08: 프로젝트 초기 설정
-
-**완료된 작업:**
-- Next.js 16 + TypeScript + Tailwind CSS 프로젝트 생성
-- 기본 레이아웃 (Header, Footer, MobileBottomBar)
-- 메인 페이지 (Hero 영상, 서비스 카테고리, CTA)
-- 포트폴리오 페이지 (카테고리 필터, 갤러리 그리드)
-- About, Contact 페이지
-- 빌드 테스트 성공
-
-**다음 단계:**
-- 실제 이미지로 교체
-- SEO 최적화
-
-### 2024-12-08: GitHub + Vercel 배포 완료
-
-**완료된 작업:**
-- GitHub 저장소 연결 (monsterrohafa-soft/partybeen-web)
-- Vercel 자동 배포 설정
-
-### 2024-12-08: 브랜드 컬러 통일
-
-**완료된 작업:**
-- 기존 골드색(#c9a962) → 피콕그린(#025566, #013A46)으로 전체 통일
-- 수정된 파일:
-  - globals.css (CSS 변수, 스크롤바)
-  - about/page.tsx
-  - contact/page.tsx
-  - portfolio/page.tsx
-  - Header.tsx
-  - Footer.tsx
-  - HeroSection.tsx
-  - ContactCTA.tsx
-  - ServiceCategories.tsx
-  - MobileBottomBar.tsx
-  - GalleryGrid.tsx
-
-### 2024-12-09: UI 업그레이드 및 관리자 시스템 구축
-
-**UI 업그레이드:**
-- 글래스모피즘, 그라디언트, 애니메이션 효과 추가
-- HeroSection: 신뢰 지표 (500+ 행사, 98% 만족도, 10+ 년)
-- ServiceCategories: stagger 애니메이션
-- ContactCTA: 글래스모피즘 카드
-- Header: 스크롤 시 배경 변화
-- Footer: 레이아웃 개선
-
-**관리자 시스템:**
-- Prisma + Neon Postgres 연동
-- NextAuth 인증 시스템
-- 포트폴리오 CRUD API (/api/portfolio)
-- Vercel Blob 이미지 업로드 (/api/upload)
-- 관리자 페이지 (/admin/portfolio)
-
-**Vercel 환경 설정:**
-- Blob Storage 생성 (partybeen-images)
-- Neon Postgres 연동
-- 환경변수 설정 완료
-
-**접속 정보:**
-- 사이트: https://partybeen-web.vercel.app
-- 관리자: https://partybeen-web.vercel.app/admin/login
-- 관리자 계정: admin@partybeen.com / partybeen2024!
-
-**다음 단계:**
-- DB 시드 데이터 (카테고리) 생성
-- 실제 포트폴리오 이미지 업로드
-- SEO 최적화
-
-### 2024-12-09: 헤더 UI 수정
-
-**완료된 작업:**
-- 헤더 배경을 항상 흰색으로 고정 (투명 제거)
-- 메뉴 텍스트 색상 어두운색으로 통일
-- 스크롤 상태와 관계없이 일관된 디자인
-
-### 2024-12-09: NextAuth 인증 문제 해결
-
-**문제:**
-- 관리자 로그인 시 "Server error - There is a problem with the server configuration" 에러 발생
-- Vercel 로그에서 `NO_SECRET` 에러 확인
-
-**해결 과정:**
-1. NextAuth v5 beta → v4.24.7 다운그레이드
-2. `@auth/prisma-adapter` 패키지 제거 (v5 전용)
-3. `auth.ts` 파일을 v4 패턴으로 변경 (AuthOptions 사용)
-4. API 라우트에서 `getServerSession(authOptions)` 패턴으로 변경
-5. NEXTAUTH_SECRET 하드코딩 fallback 추가
-
-**수정된 파일:**
-- `src/auth.ts` - NextAuth v4 설정으로 변경
-- `src/app/api/auth/[...nextauth]/route.ts` - v4 핸들러로 변경
-- `src/app/api/portfolio/route.ts` - getServerSession 사용
-- `src/app/api/portfolio/[id]/route.ts` - getServerSession 사용
-- `src/app/api/upload/route.ts` - getServerSession 사용
-- `package.json` - next-auth 버전 다운그레이드
-
-**현재 상태:**
-- NextAuth 서버 에러 해결됨 ✅
-- DB에 admin 계정 존재 확인 ✅
-- 비밀번호 해시 검증 통과 ✅
-- 로그인 테스트 필요 (아이디/비밀번호 불일치 에러 발생 중)
-
-**관리자 계정:**
-- 이메일: `admin@partybeen.com`
-- 비밀번호: `partybeen2024!`
-
-### 2024-12-10: 포트폴리오 DB 연동 및 관리자 계정 변경
-
-**문제:**
-- 포트폴리오 공개 페이지는 하드코딩된 `src/data/portfolio.ts` 파일 사용
-- 관리자 페이지는 Prisma DB 사용
-- 두 데이터 소스가 달라서 관리자에서 등록해도 공개 페이지에 안 보임
-
-**해결:**
-1. 포트폴리오 페이지를 DB에서 데이터 가져오도록 수정
-2. GalleryGrid 컴포넌트 타입 정의 분리 (DB 구조 호환)
-3. 시드 API로 기존 18개 포트폴리오 데이터 DB 마이그레이션
-4. 관리자 계정을 admin/admin으로 변경
-
-**수정된 파일:**
-- `src/app/portfolio/page.tsx` - Prisma DB에서 데이터 가져오도록 변경
-- `src/components/portfolio/GalleryGrid.tsx` - 독립적인 타입 정의
-- `src/app/api/seed/route.ts` - 시드 API 추가 (카테고리 + 포트폴리오 + 관리자 계정)
-- `prisma/seed.ts` - 시드 스크립트 업데이트
-- `src/auth.ts` - 아이디 로그인으로 변경
-- `src/app/admin/login/page.tsx` - 아이디 입력 UI로 변경
-
-**현재 관리자 계정:**
-- **아이디**: `admin`
-- **비밀번호**: `admin`
-- **로그인 URL**: https://partybeen-web.vercel.app/admin/login
-
-**시드 실행 방법:**
-```
-https://partybeen-web.vercel.app/api/seed?secret=partybeen2024seed
-```
-
-**시드 실행 결과:**
-- 카테고리 4개 생성 (CATERING, FOOD BOX, LUNCH BOX, BOX CATERING)
-- 포트폴리오 18개 등록
-- 관리자 계정 생성/업데이트
-
-**다음 단계:**
-- 포트폴리오 관리 기능 테스트
-- 실제 이미지 Vercel Blob으로 업로드
-- SEO 최적화
+→ [logs/](./logs/) 폴더 참조
