@@ -187,17 +187,123 @@ export default function AdminPortfolioPage() {
     }
   };
 
+  // 캔버스에 워터마크 적용 (클라이언트 사이드)
+  const applyWatermark = (
+    imageFile: File,
+    watermarkType: 'partybeen' | 'chef'
+  ): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const watermarkImg = new Image();
+
+      // 이미지 로드
+      img.onload = () => {
+        // 워터마크 이미지 로드
+        watermarkImg.onload = () => {
+          // 캔버스 생성
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Canvas context not available'));
+            return;
+          }
+
+          // 원본 이미지 크기로 캔버스 설정
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          // 원본 이미지 그리기
+          ctx.drawImage(img, 0, 0);
+
+          // 워터마크 크기 계산 (이미지의 30%)
+          const watermarkWidth = img.width * 0.3;
+          const watermarkHeight = (watermarkImg.height / watermarkImg.width) * watermarkWidth;
+
+          // 워터마크 위치 (중앙)
+          const x = (img.width - watermarkWidth) / 2;
+          const y = (img.height - watermarkHeight) / 2;
+
+          // 워터마크를 흰색으로 변환하고 반투명하게 적용
+          // 임시 캔버스에 워터마크 그리기
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
+          if (!tempCtx) {
+            reject(new Error('Temp canvas context not available'));
+            return;
+          }
+
+          tempCanvas.width = watermarkImg.width;
+          tempCanvas.height = watermarkImg.height;
+
+          // 워터마크 이미지 그리기
+          tempCtx.drawImage(watermarkImg, 0, 0);
+
+          // 이미지 데이터 가져오기
+          const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+          const data = imageData.data;
+
+          // 모든 픽셀을 흰색으로 변환 (알파 유지)
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] > 0) { // 알파가 있는 픽셀만
+              data[i] = 255;     // R
+              data[i + 1] = 255; // G
+              data[i + 2] = 255; // B
+              // 알파는 유지하되 60%로 감소
+              data[i + 3] = Math.round(data[i + 3] * 0.6);
+            }
+          }
+
+          tempCtx.putImageData(imageData, 0, 0);
+
+          // 메인 캔버스에 워터마크 그리기
+          ctx.drawImage(tempCanvas, x, y, watermarkWidth, watermarkHeight);
+
+          // Blob으로 변환
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to create blob'));
+              }
+            },
+            'image/jpeg',
+            0.9
+          );
+        };
+
+        watermarkImg.onerror = () => reject(new Error('Failed to load watermark'));
+        watermarkImg.crossOrigin = 'anonymous';
+        watermarkImg.src = `/logo/${watermarkType}.png`;
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(imageFile);
+    });
+  };
+
   // 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
-    const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
-    formDataUpload.append('watermark', selectedWatermark);
 
     try {
+      let fileToUpload: File | Blob = file;
+      let fileName = file.name;
+
+      // 워터마크 적용 (클라이언트 사이드 Canvas API)
+      if (selectedWatermark !== 'none') {
+        const watermarkedBlob = await applyWatermark(file, selectedWatermark);
+        fileToUpload = watermarkedBlob;
+        // 파일명에서 확장자 제거 후 .jpg 추가
+        fileName = file.name.replace(/\.[^/.]+$/, '') + '_watermarked.jpg';
+      }
+
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', fileToUpload, fileName);
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formDataUpload,
@@ -209,7 +315,8 @@ export default function AdminPortfolioPage() {
       } else {
         alert(data.error || '업로드 실패');
       }
-    } catch {
+    } catch (error) {
+      console.error('Upload error:', error);
       alert('업로드 중 오류가 발생했습니다');
     } finally {
       setUploading(false);
