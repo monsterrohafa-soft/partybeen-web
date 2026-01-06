@@ -63,6 +63,7 @@ export default function AdminPortfolioPage() {
 
   // 워터마크 선택
   const [selectedWatermark, setSelectedWatermark] = useState<'none' | 'partybeen' | 'chef'>('none');
+  const [watermarkOpacity, setWatermarkOpacity] = useState(60); // 투명도 (0-100%)
 
   // 폼 상태
   const [formData, setFormData] = useState({
@@ -190,7 +191,8 @@ export default function AdminPortfolioPage() {
   // 캔버스에 워터마크 적용 (클라이언트 사이드)
   const applyWatermark = (
     imageFile: File,
-    watermarkType: 'partybeen' | 'chef'
+    watermarkType: 'partybeen' | 'chef',
+    opacity: number // 0-100
   ): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -243,13 +245,14 @@ export default function AdminPortfolioPage() {
           const data = imageData.data;
 
           // 모든 픽셀을 흰색으로 변환 (알파 유지)
+          const opacityRatio = opacity / 100;
           for (let i = 0; i < data.length; i += 4) {
             if (data[i + 3] > 0) { // 알파가 있는 픽셀만
               data[i] = 255;     // R
               data[i + 1] = 255; // G
               data[i + 2] = 255; // B
-              // 알파는 유지하되 60%로 감소
-              data[i + 3] = Math.round(data[i + 3] * 0.6);
+              // 알파는 유지하되 지정된 투명도로 감소
+              data[i + 3] = Math.round(data[i + 3] * opacityRatio);
             }
           }
 
@@ -295,7 +298,7 @@ export default function AdminPortfolioPage() {
 
       // 워터마크 적용 (클라이언트 사이드 Canvas API)
       if (selectedWatermark !== 'none') {
-        const watermarkedBlob = await applyWatermark(file, selectedWatermark);
+        const watermarkedBlob = await applyWatermark(file, selectedWatermark, watermarkOpacity);
         fileToUpload = watermarkedBlob;
         // 파일명에서 확장자 제거 후 .jpg 추가
         fileName = file.name.replace(/\.[^/.]+$/, '') + '_watermarked.jpg';
@@ -643,6 +646,27 @@ export default function AdminPortfolioPage() {
                   <p className="text-xs text-gray-400 mt-1">
                     이미지 업로드 시 선택한 로고가 워터마크로 자동 삽입됩니다
                   </p>
+
+                  {/* 투명도 조절 슬라이더 */}
+                  {selectedWatermark !== 'none' && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        워터마크 투명도: {watermarkOpacity}%
+                      </label>
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={watermarkOpacity}
+                        onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#025566]"
+                      />
+                      <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>연하게</span>
+                        <span>진하게</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
