@@ -215,8 +215,8 @@ export default function AdminPortfolioPage() {
           // 원본 이미지 그리기
           ctx.drawImage(img, 0, 0);
 
-          // 워터마크 크기 계산 (이미지의 30%)
-          const watermarkWidth = img.width * 0.3;
+          // 워터마크 크기 계산 (이미지의 50%)
+          const watermarkWidth = img.width * 0.5;
           const watermarkHeight = (watermarkImg.height / watermarkImg.width) * watermarkWidth;
 
           // 워터마크 위치 (중앙)
