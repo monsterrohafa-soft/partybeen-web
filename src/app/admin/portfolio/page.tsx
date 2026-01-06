@@ -63,7 +63,7 @@ export default function AdminPortfolioPage() {
 
   // 워터마크 선택
   const [selectedWatermark, setSelectedWatermark] = useState<'none' | 'partybeen' | 'chef'>('none');
-  const [watermarkOpacity, setWatermarkOpacity] = useState(60); // 투명도 (0-100%)
+  const [watermarkOpacity, setWatermarkOpacity] = useState(85); // 투명도 (0-100%)
 
   // 폼 상태
   const [formData, setFormData] = useState({
