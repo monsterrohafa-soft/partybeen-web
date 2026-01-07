@@ -18,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Move,
-  FolderImage,
+  Images,
   FileText,
 } from 'lucide-react';
 
@@ -449,7 +449,7 @@ export default function AdminPortfolioPage() {
             href="/admin/portfolio"
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white"
           >
-            <FolderImage className="w-4 h-4" />
+            <Images className="w-4 h-4" />
             포트폴리오
           </Link>
           <Link

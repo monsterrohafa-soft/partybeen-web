@@ -16,7 +16,7 @@ import {
   Eye,
   EyeOff,
   FileText,
-  FolderImage,
+  Images,
 } from 'lucide-react';
 
 interface Notice {
@@ -201,7 +201,7 @@ export default function AdminNoticePage() {
             href="/admin/portfolio"
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <FolderImage className="w-4 h-4" />
+            <Images className="w-4 h-4" />
             포트폴리오
           </Link>
           <Link
