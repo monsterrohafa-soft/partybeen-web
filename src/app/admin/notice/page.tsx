@@ -47,7 +47,8 @@ export default function AdminNoticePage() {
 
   const loadData = useCallback(async () => {
     try {
-      const res = await fetch('/api/notice?limit=100');
+      // includeHidden=true로 숨김 공지사항도 포함
+      const res = await fetch('/api/notice?limit=100&includeHidden=true');
       const data = await res.json();
       setNotices(data.notices || []);
     } catch (error) {

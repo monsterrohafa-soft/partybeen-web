@@ -9,11 +9,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const includeHidden = searchParams.get('includeHidden') === 'true';
     const skip = (page - 1) * limit;
+
+    // includeHidden=true면 모든 공지사항 (관리자용)
+    const whereClause = includeHidden ? {} : { isVisible: true };
 
     const [notices, total] = await Promise.all([
       prisma.notice.findMany({
-        where: { isVisible: true },
+        where: whereClause,
         include: {
           author: {
             select: { name: true, email: true },
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.notice.count({ where: { isVisible: true } }),
+      prisma.notice.count({ where: whereClause }),
     ]);
 
     return NextResponse.json({
