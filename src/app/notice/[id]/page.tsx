@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Eye, Pin, Calendar, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Eye, Pin, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import ShareButton from '@/components/ShareButton';
 import prisma from '@/lib/prisma';
 import { BRAND } from '@/lib/constants';
 
@@ -137,13 +138,7 @@ export default async function NoticeDetailPage({ params }: NoticeDetailPageProps
                 <ArrowLeft className="w-4 h-4" />
                 목록으로
               </Link>
-              <button
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-gray-600 hover:text-[#025566] transition-colors"
-                onClick={() => {}}
-              >
-                <Share2 className="w-4 h-4" />
-                공유하기
-              </button>
+              <ShareButton />
             </div>
           </div>
         </article>
