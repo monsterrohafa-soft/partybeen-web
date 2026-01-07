@@ -22,6 +22,7 @@ model User {
   role          Role      @default(USER)
   accounts      Account[]
   sessions      Session[]
+  notices       Notice[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -93,4 +94,20 @@ model Portfolio {
 
   @@index([categoryId])
   @@index([orderIndex])
+}
+
+// 공지사항
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text // 긴 텍스트 지원
+  isVisible Boolean  @default(true)
+  isPinned  Boolean  @default(false) // 상단 고정
+  viewCount Int      @default(0)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isVisible, isPinned, createdAt])
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Plus,
   Trash2,
@@ -17,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Move,
+  FolderImage,
+  FileText,
 } from 'lucide-react';
 
 interface Category {
@@ -440,6 +443,24 @@ export default function AdminPortfolioPage() {
 
       {/* 메인 */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* 탭 네비게이션 */}
+        <div className="flex gap-2 mb-6">
+          <Link
+            href="/admin/portfolio"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white"
+          >
+            <FolderImage className="w-4 h-4" />
+            포트폴리오
+          </Link>
+          <Link
+            href="/admin/notice"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            공지사항
+          </Link>
+        </div>
+
         {/* 상단 액션 */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
           <div>
