@@ -40,7 +40,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <Header />
-        <main className="min-h-screen pt-16 sm:pt-20 pb-20 md:pb-0">
+        <main className="min-h-screen pt-24 sm:pt-28 pb-20 md:pb-0">
           {children}
         </main>
         <Footer />

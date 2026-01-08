@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, Phone, ChevronRight } from 'lucide-react';
+import { Menu, X, Phone, ChevronRight, ExternalLink } from 'lucide-react';
 import { NAV_ITEMS, CONTACT, BRAND } from '@/lib/constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,8 +22,36 @@ export default function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm"
+      className="fixed top-0 left-0 right-0 z-50"
     >
+      {/* 쉐프의 도시락 연계 배너 */}
+      {isBannerVisible && (
+        <div className="bg-[#8B7355] text-white py-2 px-4 relative">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm">
+            <span className="hidden sm:inline">단체 도시락이 필요하신가요?</span>
+            <span className="sm:hidden">단체 도시락</span>
+            <a
+              href="https://cheflunchbox.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors font-medium"
+            >
+              쉐프의 도시락
+              <ExternalLink size={14} />
+            </a>
+            <button
+              onClick={() => setIsBannerVisible(false)}
+              className="absolute right-2 sm:right-4 p-1 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="배너 닫기"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 메인 헤더 */}
+      <div className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* 로고 */}
@@ -132,6 +161,7 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </header>
   );
 }
