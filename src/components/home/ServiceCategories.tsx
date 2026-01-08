@@ -10,22 +10,18 @@ const categoryDetails = {
   catering: {
     image: '/images/portfolio/812518548_1.jpg',
     description: '기업행사, 웨딩, 프라이빗 파티를 위한 프리미엄 출장 케이터링',
-    icon: '🎉',
   },
   'food-box': {
     image: '/images/portfolio/1982018076_1.jpg',
     description: '다양한 메뉴를 한 박스에 담은 스페셜 푸드 박스',
-    icon: '📦',
   },
   'lunch-box': {
     image: '/images/portfolio/1150916187_1.jpg',
     description: '정성을 담은 프리미엄 도시락 서비스',
-    icon: '🍱',
   },
   'box-catering': {
     image: '/images/portfolio/2005674040_1.jpg',
     description: '소규모 행사에 적합한 박스형 케이터링',
-    icon: '🎁',
   },
 };
 
@@ -107,11 +103,6 @@ export default function ServiceCategories() {
 
                   {/* 콘텐츠 */}
                   <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    {/* 아이콘 뱃지 */}
-                    <div className="absolute top-4 right-4 w-12 h-12 glass rounded-2xl flex items-center justify-center text-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                      {details.icon}
-                    </div>
-
                     <div className="transform transition-transform duration-300 group-hover:translate-y-0">
                       <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                         {category.name}
