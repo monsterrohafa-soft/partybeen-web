@@ -105,17 +105,15 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <a
-            href={CONTACT.kakaoChannel}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/contact"
             className="group w-full sm:w-auto px-8 py-4 bg-white text-[#013A46] font-semibold rounded-full transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 text-center flex items-center justify-center gap-2"
           >
             <span>견적 문의하기</span>
             <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </a>
+          </Link>
           <Link
             href="/portfolio"
             className="w-full sm:w-auto px-8 py-4 glass text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300 text-center"

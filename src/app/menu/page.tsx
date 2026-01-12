@@ -113,6 +113,24 @@ export default function MenuPage() {
           </motion.div>
         )}
 
+        {/* 문의 CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-gray-600 mb-4">
+            원하시는 메뉴가 있으신가요?
+          </p>
+          <a
+            href="https://pf.kakao.com/_DTqwT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-[#FEE500] text-[#391B1B] font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+              <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.89 5.32 4.71 6.72-.17.61-.64 2.21-.73 2.56-.12.45.16.44.34.32.14-.09 2.17-1.47 3.05-2.06.53.07 1.07.11 1.63.11 5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+            </svg>
+            카카오톡 문의하기
+          </a>
+        </div>
+
         {/* 모달 */}
         <AnimatePresence>
           {selectedMenu && (

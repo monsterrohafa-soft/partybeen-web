@@ -28,8 +28,7 @@ export default function Header() {
       {isBannerVisible && (
         <div className="bg-[#8B7355] text-white py-2 px-4 relative">
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm">
-            <span className="hidden sm:inline">단체 도시락이 필요하신가요?</span>
-            <span className="sm:hidden">단체 도시락</span>
+            <span>단체 도시락이 필요하신가요?</span>
             <a
               href="https://cheflunchbox.com"
               target="_blank"
@@ -92,9 +91,12 @@ export default function Header() {
               href={CONTACT.kakaoChannel}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 text-sm font-medium rounded-full bg-[#013A46] text-white hover:bg-[#025566] hover:shadow-lg transition-all duration-300"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-full bg-[#FEE500] text-[#391B1B] hover:shadow-lg transition-all duration-300"
             >
-              견적 문의
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.89 5.32 4.71 6.72-.17.61-.64 2.21-.73 2.56-.12.45.16.44.34.32.14-.09 2.17-1.47 3.05-2.06.53.07 1.07.11 1.63.11 5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+              </svg>
+              카카오톡 문의
             </a>
           </div>
 
