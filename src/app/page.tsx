@@ -1,5 +1,6 @@
 import HeroSection from '@/components/home/HeroSection';
 import ServiceCategories from '@/components/home/ServiceCategories';
+import RecentPortfolio from '@/components/home/RecentPortfolio';
 import ContactCTA from '@/components/home/ContactCTA';
 
 export default function Home() {
@@ -7,6 +8,7 @@ export default function Home() {
     <>
       <HeroSection />
       <ServiceCategories />
+      <RecentPortfolio />
       <ContactCTA />
     </>
   );

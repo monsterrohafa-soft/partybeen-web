@@ -17,6 +17,7 @@ import {
   EyeOff,
   FileText,
   Images,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 interface Notice {
@@ -197,17 +198,24 @@ export default function AdminNoticePage() {
       {/* 메인 */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* 탭 네비게이션 */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto">
           <Link
             href="/admin/portfolio"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
             <Images className="w-4 h-4" />
             포트폴리오
           </Link>
           <Link
+            href="/admin/menu"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            메뉴
+          </Link>
+          <Link
             href="/admin/notice"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white whitespace-nowrap"
           >
             <FileText className="w-4 h-4" />
             공지사항

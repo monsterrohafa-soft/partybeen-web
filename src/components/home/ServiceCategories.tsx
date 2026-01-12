@@ -63,13 +63,13 @@ export default function ServiceCategories() {
           className="text-center mb-16 sm:mb-20"
         >
           <span className="inline-block px-4 py-1.5 mb-4 text-sm font-medium text-[#025566] bg-[#025566]/10 rounded-full">
-            Our Services
+            Our Menu
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            서비스 카테고리
+            메뉴
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            파티빈의 다양한 케이터링 서비스를 만나보세요
+            파티빈의 다양한 케이터링 메뉴를 만나보세요
           </p>
         </motion.div>
 
@@ -127,7 +127,7 @@ export default function ServiceCategories() {
           })}
         </motion.div>
 
-        {/* 하단 CTA */}
+        {/* 하단 CTA - 메뉴 페이지로 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -136,10 +136,10 @@ export default function ServiceCategories() {
           className="text-center mt-16"
         >
           <Link
-            href="/portfolio"
+            href="/menu"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#013A46] text-white font-semibold rounded-full hover:bg-[#025566] transition-all duration-300 hover:shadow-lg hover:shadow-[#013A46]/20"
           >
-            <span>전체 포트폴리오 보기</span>
+            <span>전체 메뉴 보기</span>
             <ArrowRight size={18} />
           </Link>
         </motion.div>

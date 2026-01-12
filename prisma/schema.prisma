@@ -79,18 +79,61 @@ model Category {
 
 // 포트폴리오 아이템
 model Portfolio {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   title         String
   description   String?
-  imageUrl      String   // Vercel Blob URL
-  imagePosition String?  // 이미지 위치 (예: "50% 30%") - object-position용
-  externalUrl   String?  // 언론보도용 외부 링크 (null이면 일반 포트폴리오)
+  content       String?     @db.Text // 상세페이지용 본문 내용
+  imageUrl      String      // Vercel Blob URL
+  imagePosition String?     // 이미지 위치 (예: "50% 30%") - object-position용
+  externalUrl   String?     // 언론보도용 외부 링크 (null이면 일반 포트폴리오)
+  displayMode   DisplayMode @default(MODAL) // 모달 또는 상세페이지
   categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
-  orderIndex    Int      @default(0)
-  isVisible     Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  category      Category    @relation(fields: [categoryId], references: [id])
+  orderIndex    Int         @default(0)
+  isVisible     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([orderIndex])
+}
+
+// 표시 모드
+enum DisplayMode {
+  MODAL  // 모달로 표시
+  DETAIL // 상세페이지로 이동
+}
+
+// 메뉴 카테고리
+model MenuCategory {
+  id          String   @id @default(cuid())
+  name        String   // 표시 이름 (예: "메인 요리")
+  slug        String   @unique
+  description String?
+  orderIndex  Int      @default(0)
+  isVisible   Boolean  @default(true)
+  menus       Menu[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orderIndex])
+}
+
+// 메뉴 아이템
+model Menu {
+  id          String       @id @default(cuid())
+  name        String       // 메뉴 이름
+  description String?      // 간단 설명
+  content     String?      @db.Text // 상세페이지용 본문 내용
+  price       String?      // 가격 (문자열로 "10,000원~" 등 표현)
+  imageUrl    String       // 썸네일 이미지
+  displayMode DisplayMode  @default(MODAL) // 모달 또는 상세페이지
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id])
+  orderIndex  Int          @default(0)
+  isVisible   Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@index([categoryId])
   @@index([orderIndex])

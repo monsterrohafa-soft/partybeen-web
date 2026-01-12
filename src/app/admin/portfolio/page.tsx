@@ -20,6 +20,9 @@ import {
   Move,
   Images,
   FileText,
+  UtensilsCrossed,
+  Monitor,
+  Maximize2,
 } from 'lucide-react';
 
 interface Category {
@@ -33,9 +36,11 @@ interface Portfolio {
   id: string;
   title: string;
   description?: string;
+  content?: string;
   imageUrl: string;
   imagePosition?: string;
   externalUrl?: string;
+  displayMode: 'MODAL' | 'DETAIL';
   categoryId: string;
   category: Category;
   orderIndex: number;
@@ -72,10 +77,12 @@ export default function AdminPortfolioPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    content: '',
     imageUrl: '',
     imagePosition: '50% 50%',
     categoryId: '',
     externalUrl: '',
+    displayMode: 'MODAL' as 'MODAL' | 'DETAIL',
   });
 
   // 현재 선택된 카테고리가 언론보도인지 확인
@@ -351,7 +358,7 @@ export default function AdminPortfolioPage() {
       if (res.ok) {
         setShowModal(false);
         setEditingItem(null);
-        setFormData({ title: '', description: '', imageUrl: '', imagePosition: '50% 50%', categoryId: '', externalUrl: '' });
+        setFormData({ title: '', description: '', content: '', imageUrl: '', imagePosition: '50% 50%', categoryId: '', externalUrl: '', displayMode: 'MODAL' });
         setUrlInput('');
         setAvailableImages([]);
         setSelectedImageIndex(0);
@@ -391,10 +398,12 @@ export default function AdminPortfolioPage() {
     setFormData({
       title: item.title,
       description: item.description || '',
+      content: item.content || '',
       imageUrl: item.imageUrl,
       imagePosition: item.imagePosition || '50% 50%',
       categoryId: item.categoryId,
       externalUrl: item.externalUrl || '',
+      displayMode: item.displayMode || 'MODAL',
     });
     setUrlInput(item.externalUrl || '');
     setAvailableImages(item.imageUrl ? [item.imageUrl] : []);
@@ -405,7 +414,7 @@ export default function AdminPortfolioPage() {
   // 새 항목 모달 열기
   const openNewModal = () => {
     setEditingItem(null);
-    setFormData({ title: '', description: '', imageUrl: '', imagePosition: '50% 50%', categoryId: categories[0]?.id || '', externalUrl: '' });
+    setFormData({ title: '', description: '', content: '', imageUrl: '', imagePosition: '50% 50%', categoryId: categories[0]?.id || '', externalUrl: '', displayMode: 'MODAL' });
     setUrlInput('');
     setAvailableImages([]);
     setSelectedImageIndex(0);
@@ -444,17 +453,24 @@ export default function AdminPortfolioPage() {
       {/* 메인 */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* 탭 네비게이션 */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto">
           <Link
             href="/admin/portfolio"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#025566] text-white whitespace-nowrap"
           >
             <Images className="w-4 h-4" />
             포트폴리오
           </Link>
           <Link
+            href="/admin/menu"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            메뉴
+          </Link>
+          <Link
             href="/admin/notice"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
             <FileText className="w-4 h-4" />
             공지사항
@@ -846,6 +862,49 @@ export default function AdminPortfolioPage() {
                   placeholder={isPressCategory ? '예: 부산일보' : '간단한 설명'}
                 />
               </div>
+
+              {/* 표시 방식 (언론보도 제외) */}
+              {!isPressCategory && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">표시 방식</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, displayMode: 'MODAL' }))}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors ${
+                        formData.displayMode === 'MODAL' ? 'border-[#025566] bg-[#025566]/5 text-[#025566]' : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      <Monitor className="w-5 h-5" />
+                      <span>모달</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, displayMode: 'DETAIL' }))}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors ${
+                        formData.displayMode === 'DETAIL' ? 'border-[#025566] bg-[#025566]/5 text-[#025566]' : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      <Maximize2 className="w-5 h-5" />
+                      <span>상세페이지</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 상세 내용 (상세페이지 모드일 때만) */}
+              {formData.displayMode === 'DETAIL' && !isPressCategory && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">상세 내용</label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
+                    rows={6}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566] resize-none"
+                    placeholder="상세 페이지에 표시될 내용을 입력하세요"
+                  />
+                </div>
+              )}
             </div>
 
             {/* 모달 푸터 */}

@@ -22,6 +22,7 @@ export const CATEGORIES = [
 export const NAV_ITEMS = [
   { name: '홈', href: '/' },
   { name: '포트폴리오', href: '/portfolio' },
+  { name: '메뉴', href: '/menu' },
   { name: '공지사항', href: '/notice' },
   { name: '회사소개', href: '/about' },
   { name: '문의하기', href: '/contact' },
