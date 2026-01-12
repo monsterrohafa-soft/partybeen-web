@@ -183,7 +183,7 @@ export default function RecentPortfolio() {
         >
           <Link
             href="/portfolio"
-            className="inline-flex items-center gap-2 text-[#025566] font-semibold hover:gap-3 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#013A46] text-white font-semibold rounded-full hover:bg-[#025566] transition-all duration-300 hover:shadow-lg hover:shadow-[#013A46]/20"
           >
             <span>전체 포트폴리오 보기</span>
             <ArrowRight size={18} />

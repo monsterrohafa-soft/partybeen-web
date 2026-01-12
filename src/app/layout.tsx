@@ -17,6 +17,14 @@ export const metadata: Metadata = {
     description: BRAND.description,
     type: 'website',
     locale: 'ko_KR',
+    images: [
+      {
+        url: '/logo/main.png',
+        width: 800,
+        height: 400,
+        alt: BRAND.name,
+      },
+    ],
   },
   robots: {
     index: true,
