@@ -16,7 +16,6 @@ import {
   Images,
   FileText,
   UtensilsCrossed,
-  Settings,
   Eye,
   EyeOff,
   Monitor,
@@ -27,10 +26,6 @@ interface MenuCategory {
   id: string;
   name: string;
   slug: string;
-  description?: string;
-  orderIndex: number;
-  isVisible: boolean;
-  _count?: { menus: number };
 }
 
 interface Menu {
@@ -53,13 +48,11 @@ export default function AdminMenuPage() {
   const router = useRouter();
   const [menus, setMenus] = useState<Menu[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [showMenuModal, setShowMenuModal] = useState(false);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
-  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingDetail, setUploadingDetail] = useState(false);
 
   const [menuForm, setMenuForm] = useState({
     name: '',
@@ -71,18 +64,11 @@ export default function AdminMenuPage() {
     displayMode: 'MODAL' as 'MODAL' | 'DETAIL',
     categoryId: '',
   });
-  const [uploadingDetail, setUploadingDetail] = useState(false);
-
-  const [categoryForm, setCategoryForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-  });
 
   const loadData = useCallback(async () => {
     try {
       const [menusRes, categoriesRes] = await Promise.all([
-        fetch(`/api/menu?includeHidden=true${selectedCategory !== 'all' ? `&category=${selectedCategory}` : ''}`),
+        fetch('/api/menu?includeHidden=true'),
         fetch('/api/menu-categories'),
       ]);
 
@@ -96,7 +82,7 @@ export default function AdminMenuPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -164,8 +150,15 @@ export default function AdminMenuPage() {
 
   // 메뉴 저장
   const handleSaveMenu = async () => {
-    if (!menuForm.name || !menuForm.imageUrl || !menuForm.categoryId) {
-      alert('이름, 이미지, 카테고리는 필수입니다');
+    if (!menuForm.name || !menuForm.imageUrl) {
+      alert('이름과 이미지는 필수입니다');
+      return;
+    }
+
+    // 카테고리가 없으면 첫번째 카테고리 자동 선택
+    const categoryId = menuForm.categoryId || categories[0]?.id;
+    if (!categoryId) {
+      alert('카테고리가 없습니다. 먼저 카테고리를 추가해주세요.');
       return;
     }
 
@@ -176,7 +169,7 @@ export default function AdminMenuPage() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuForm),
+        body: JSON.stringify({ ...menuForm, categoryId }),
       });
 
       if (res.ok) {
@@ -223,54 +216,6 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 카테고리 저장
-  const handleSaveCategory = async () => {
-    if (!categoryForm.name || !categoryForm.slug) {
-      alert('이름과 슬러그는 필수입니다');
-      return;
-    }
-
-    try {
-      const url = editingCategory ? `/api/menu-categories/${editingCategory.id}` : '/api/menu-categories';
-      const method = editingCategory ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(categoryForm),
-      });
-
-      if (res.ok) {
-        setShowCategoryModal(false);
-        setEditingCategory(null);
-        setCategoryForm({ name: '', slug: '', description: '' });
-        loadData();
-      } else {
-        const error = await res.json();
-        alert(error.error || '저장 실패');
-      }
-    } catch {
-      alert('저장 중 오류가 발생했습니다');
-    }
-  };
-
-  // 카테고리 삭제
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까? 이 카테고리에 메뉴가 있으면 삭제할 수 없습니다.')) return;
-
-    try {
-      const res = await fetch(`/api/menu-categories/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        loadData();
-      } else {
-        const error = await res.json();
-        alert(error.error || '삭제 실패');
-      }
-    } catch {
-      alert('삭제 중 오류가 발생했습니다');
-    }
-  };
-
   // 메뉴 수정 모달 열기
   const openEditMenuModal = (menu: Menu) => {
     setEditingMenu(menu);
@@ -292,24 +237,6 @@ export default function AdminMenuPage() {
     setEditingMenu(null);
     setMenuForm({ name: '', description: '', content: '', price: '', imageUrl: '', detailImageUrl: '', displayMode: 'MODAL', categoryId: categories[0]?.id || '' });
     setShowMenuModal(true);
-  };
-
-  // 카테고리 수정 모달 열기
-  const openEditCategoryModal = (cat: MenuCategory) => {
-    setEditingCategory(cat);
-    setCategoryForm({
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description || '',
-    });
-    setShowCategoryModal(true);
-  };
-
-  // 새 카테고리 모달 열기
-  const openNewCategoryModal = () => {
-    setEditingCategory(null);
-    setCategoryForm({ name: '', slug: '', description: '' });
-    setShowCategoryModal(true);
   };
 
   if (status === 'loading' || loading) {
@@ -361,47 +288,15 @@ export default function AdminMenuPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">메뉴 관리</h2>
-            <p className="text-gray-500">메뉴와 카테고리를 추가, 수정, 삭제할 수 있습니다</p>
+            <p className="text-gray-500">메뉴를 추가, 수정, 삭제할 수 있습니다</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={openNewCategoryModal}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              카테고리 관리
-            </button>
-            <button
-              onClick={openNewMenuModal}
-              className="flex items-center gap-2 px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              새 메뉴 추가
-            </button>
-          </div>
-        </div>
-
-        {/* 카테고리 필터 */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-              selectedCategory === 'all' ? 'bg-[#025566] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-            }`}
+            onClick={openNewMenuModal}
+            className="flex items-center gap-2 px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
           >
-            전체
+            <Plus className="w-5 h-5" />
+            새 메뉴 추가
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.slug)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                selectedCategory === cat.slug ? 'bg-[#025566] text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {cat.name} ({cat._count?.menus || 0})
-            </button>
-          ))}
         </div>
 
         {/* 메뉴 그리드 */}
@@ -457,10 +352,7 @@ export default function AdminMenuPage() {
                 </div>
                 <div className="p-3">
                   <h3 className="font-medium text-gray-900 truncate">{menu.name}</h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-500">{menu.category?.name}</span>
-                    {menu.price && <span className="text-xs font-medium text-[#025566]">{menu.price}</span>}
-                  </div>
+                  {menu.price && <span className="text-xs font-medium text-[#025566]">{menu.price}</span>}
                 </div>
               </div>
             ))}
@@ -480,21 +372,6 @@ export default function AdminMenuPage() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* 카테고리 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">카테고리 *</label>
-                <select
-                  value={menuForm.categoryId}
-                  onChange={(e) => setMenuForm((prev) => ({ ...prev, categoryId: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                >
-                  <option value="">선택하세요</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-
               {/* 표시 모드 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">표시 방식 *</label>
@@ -652,111 +529,6 @@ export default function AdminMenuPage() {
               <button onClick={handleSaveMenu} className="px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors">
                 저장
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 카테고리 관리 모달 */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-lg font-bold">카테고리 관리</h3>
-              <button onClick={() => setShowCategoryModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              {/* 기존 카테고리 목록 */}
-              {categories.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">기존 카테고리</h4>
-                  <div className="space-y-2">
-                    {categories.map((cat) => (
-                      <div key={cat.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <span className="font-medium text-gray-900">{cat.name}</span>
-                          <span className="text-xs text-gray-500 ml-2">({cat.slug})</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => openEditCategoryModal(cat)}
-                            className="p-1.5 text-gray-500 hover:bg-gray-200 rounded transition-colors"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 새 카테고리 / 수정 폼 */}
-              <div className="border-t pt-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
-                  {editingCategory ? '카테고리 수정' : '새 카테고리 추가'}
-                </h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">이름 *</label>
-                    <input
-                      type="text"
-                      value={categoryForm.name}
-                      onChange={(e) => setCategoryForm((prev) => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                      placeholder="예: 메인 요리"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">슬러그 * (URL용, 영문)</label>
-                    <input
-                      type="text"
-                      value={categoryForm.slug}
-                      onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                      placeholder="예: main-dish"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">설명 (선택)</label>
-                    <input
-                      type="text"
-                      value={categoryForm.description}
-                      onChange={(e) => setCategoryForm((prev) => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
-                      placeholder="카테고리 설명"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    {editingCategory && (
-                      <button
-                        onClick={() => {
-                          setEditingCategory(null);
-                          setCategoryForm({ name: '', slug: '', description: '' });
-                        }}
-                        className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                      >
-                        취소
-                      </button>
-                    )}
-                    <button
-                      onClick={handleSaveCategory}
-                      className="flex-1 px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
-                    >
-                      {editingCategory ? '수정' : '추가'}
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
