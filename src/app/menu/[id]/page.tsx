@@ -16,7 +16,7 @@ async function getMenu(id: string) {
       category: true,
     },
   });
-  return menu;
+  return menu as (typeof menu & { detailImageUrl?: string | null }) | null;
 }
 
 async function getRelatedMenus(categoryId: string, currentId: string) {
@@ -78,7 +78,7 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={(menu as { detailImageUrl?: string }).detailImageUrl || menu.imageUrl}
+              src={menu.detailImageUrl || menu.imageUrl}
               alt={menu.name}
               className="w-full h-auto"
             />
