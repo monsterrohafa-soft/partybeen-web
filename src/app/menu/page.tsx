@@ -23,23 +23,16 @@ interface Menu {
 }
 
 export default function MenuPage() {
-  const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [categoriesRes, menusRes] = await Promise.all([
-          fetch('/api/menu-categories'),
-          fetch('/api/menu'),
-        ]);
-        const categoriesData = await categoriesRes.json();
-        const menusData = await menusRes.json();
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-        setMenus(Array.isArray(menusData) ? menusData : []);
+        const res = await fetch('/api/menu');
+        const data = await res.json();
+        setMenus(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Failed to load menu data:', error);
       } finally {
@@ -49,16 +42,10 @@ export default function MenuPage() {
     loadData();
   }, []);
 
-  const filteredMenus = selectedCategory === 'all'
-    ? menus
-    : menus.filter(menu => menu.category.slug === selectedCategory);
-
   const handleMenuClick = (menu: Menu) => {
     if (menu.displayMode === 'DETAIL') {
-      // 상세페이지로 이동은 Link로 처리
       return;
     }
-    // 모달로 표시
     setSelectedMenu(menu);
   };
 
@@ -86,37 +73,8 @@ export default function MenuPage() {
           </p>
         </div>
 
-        {/* 카테고리 필터 */}
-        {categories.length > 0 && (
-          <div className="flex justify-center gap-2 mb-10 flex-wrap">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-[#025566] text-white shadow-lg'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-              }`}
-            >
-              전체
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === cat.slug
-                    ? 'bg-[#025566] text-white shadow-lg'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* 메뉴 없을 때 */}
-        {filteredMenus.length === 0 ? (
+        {menus.length === 0 ? (
           <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl">
             <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">등록된 메뉴가 없습니다</p>
@@ -128,7 +86,7 @@ export default function MenuPage() {
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             <AnimatePresence mode="popLayout">
-              {filteredMenus.map((menu) => (
+              {menus.map((menu) => (
                 <motion.div
                   key={menu.id}
                   layout
@@ -194,14 +152,9 @@ export default function MenuPage() {
                 {/* 내용 */}
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <span className="text-sm text-[#025566] font-medium">
-                        {selectedMenu.category.name}
-                      </span>
-                      <h2 className="text-2xl font-bold text-gray-900 mt-1">
-                        {selectedMenu.name}
-                      </h2>
-                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {selectedMenu.name}
+                    </h2>
                     {selectedMenu.price && (
                       <span className="text-lg font-bold text-[#025566] whitespace-nowrap">
                         {selectedMenu.price}
@@ -257,7 +210,6 @@ function MenuCard({ menu }: { menu: Menu }) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       {/* 정보 */}
       <div className="absolute inset-0 p-4 flex flex-col justify-end">
-        <span className="text-xs text-white/70 mb-1">{menu.category.name}</span>
         <h3 className="text-lg font-bold text-white leading-tight mb-1">
           {menu.name}
         </h3>
