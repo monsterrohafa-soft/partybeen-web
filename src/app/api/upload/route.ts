@@ -3,14 +3,6 @@ import { getServerSession } from 'next-auth';
 import { put } from '@vercel/blob';
 import { authOptions } from '@/auth';
 
-// Pro 플랜: body size 제한 50MB
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
-};
 
 export async function POST(request: NextRequest) {
   try {
