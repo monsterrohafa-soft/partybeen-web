@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
+import { Salad, ChefHat, Sparkles } from 'lucide-react';
 import { BRAND, CONTACT } from '@/lib/constants';
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">🍽️</span>
+                <Salad className="w-8 h-8 text-[#025566]" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">신선한 재료</h3>
               <p className="text-gray-600 text-sm">
@@ -61,7 +62,7 @@ export default function AboutPage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">👨‍🍳</span>
+                <ChefHat className="w-8 h-8 text-[#025566]" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">전문 셰프</h3>
               <p className="text-gray-600 text-sm">
@@ -70,7 +71,7 @@ export default function AboutPage() {
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#025566]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">✨</span>
+                <Sparkles className="w-8 h-8 text-[#025566]" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">맞춤 서비스</h3>
               <p className="text-gray-600 text-sm">
