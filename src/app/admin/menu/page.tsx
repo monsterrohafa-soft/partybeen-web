@@ -40,6 +40,7 @@ interface Menu {
   content?: string;
   price?: string;
   imageUrl: string;
+  detailImageUrl?: string;
   displayMode: 'MODAL' | 'DETAIL';
   categoryId: string;
   category: MenuCategory;
@@ -66,9 +67,11 @@ export default function AdminMenuPage() {
     content: '',
     price: '',
     imageUrl: '',
+    detailImageUrl: '',
     displayMode: 'MODAL' as 'MODAL' | 'DETAIL',
     categoryId: '',
   });
+  const [uploadingDetail, setUploadingDetail] = useState(false);
 
   const [categoryForm, setCategoryForm] = useState({
     name: '',
@@ -103,7 +106,7 @@ export default function AdminMenuPage() {
     }
   }, [status, router, loadData]);
 
-  // 이미지 업로드
+  // 썸네일 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -131,6 +134,34 @@ export default function AdminMenuPage() {
     }
   };
 
+  // 상세페이지 이미지 업로드
+  const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingDetail(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        setMenuForm((prev) => ({ ...prev, detailImageUrl: data.url }));
+      } else {
+        alert(data.error || '업로드 실패');
+      }
+    } catch {
+      alert('업로드 중 오류가 발생했습니다');
+    } finally {
+      setUploadingDetail(false);
+    }
+  };
+
   // 메뉴 저장
   const handleSaveMenu = async () => {
     if (!menuForm.name || !menuForm.imageUrl || !menuForm.categoryId) {
@@ -151,7 +182,7 @@ export default function AdminMenuPage() {
       if (res.ok) {
         setShowMenuModal(false);
         setEditingMenu(null);
-        setMenuForm({ name: '', description: '', content: '', price: '', imageUrl: '', displayMode: 'MODAL', categoryId: '' });
+        setMenuForm({ name: '', description: '', content: '', price: '', imageUrl: '', detailImageUrl: '', displayMode: 'MODAL', categoryId: '' });
         loadData();
       } else {
         const error = await res.json();
@@ -249,6 +280,7 @@ export default function AdminMenuPage() {
       content: menu.content || '',
       price: menu.price || '',
       imageUrl: menu.imageUrl,
+      detailImageUrl: menu.detailImageUrl || '',
       displayMode: menu.displayMode,
       categoryId: menu.categoryId,
     });
@@ -258,7 +290,7 @@ export default function AdminMenuPage() {
   // 새 메뉴 모달 열기
   const openNewMenuModal = () => {
     setEditingMenu(null);
-    setMenuForm({ name: '', description: '', content: '', price: '', imageUrl: '', displayMode: 'MODAL', categoryId: categories[0]?.id || '' });
+    setMenuForm({ name: '', description: '', content: '', price: '', imageUrl: '', detailImageUrl: '', displayMode: 'MODAL', categoryId: categories[0]?.id || '' });
     setShowMenuModal(true);
   };
 
@@ -493,29 +525,31 @@ export default function AdminMenuPage() {
                 </p>
               </div>
 
-              {/* 이미지 */}
+              {/* 썸네일 이미지 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">이미지 *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  썸네일 이미지 * <span className="text-xs text-gray-400 font-normal">(목록에서 보여지는 정사각형 이미지)</span>
+                </label>
                 {menuForm.imageUrl ? (
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                  <div className="relative aspect-square w-32 rounded-lg overflow-hidden bg-gray-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={menuForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setMenuForm((prev) => ({ ...prev, imageUrl: '' }))}
-                      className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
+                      className="absolute top-1 right-1 p-1 bg-white rounded-full shadow"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <label className="block cursor-pointer">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#025566] transition-colors">
+                  <label className="block cursor-pointer w-32">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#025566] transition-colors aspect-square flex flex-col items-center justify-center">
                       {uploading ? (
-                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-[#025566]" />
+                        <Loader2 className="w-6 h-6 animate-spin text-[#025566]" />
                       ) : (
                         <>
-                          <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">클릭하여 이미지 업로드</p>
+                          <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                          <p className="text-xs text-gray-500">업로드</p>
                         </>
                       )}
                     </div>
@@ -523,6 +557,42 @@ export default function AdminMenuPage() {
                   </label>
                 )}
               </div>
+
+              {/* 상세페이지 이미지 (상세페이지 모드일 때만) */}
+              {menuForm.displayMode === 'DETAIL' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    상세페이지 이미지 <span className="text-xs text-gray-400 font-normal">(세로로 긴 이미지 권장, 없으면 썸네일 사용)</span>
+                  </label>
+                  {menuForm.detailImageUrl ? (
+                    <div className="relative w-full max-w-xs rounded-lg overflow-hidden bg-gray-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={menuForm.detailImageUrl} alt="Detail Preview" className="w-full h-auto" />
+                      <button
+                        onClick={() => setMenuForm((prev) => ({ ...prev, detailImageUrl: '' }))}
+                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="block cursor-pointer">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#025566] transition-colors max-w-xs">
+                        {uploadingDetail ? (
+                          <Loader2 className="w-8 h-8 mx-auto animate-spin text-[#025566]" />
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-500">상세페이지용 이미지 업로드</p>
+                            <p className="text-xs text-gray-400 mt-1">세로로 긴 이미지도 전체가 보입니다</p>
+                          </>
+                        )}
+                      </div>
+                      <input type="file" accept="image/*" onChange={handleDetailImageUpload} className="hidden" disabled={uploadingDetail} />
+                    </label>
+                  )}
+                </div>
+              )}
 
               {/* 메뉴명 */}
               <div>

@@ -121,19 +121,20 @@ model MenuCategory {
 
 // 메뉴 아이템
 model Menu {
-  id          String       @id @default(cuid())
-  name        String       // 메뉴 이름
-  description String?      // 간단 설명
-  content     String?      @db.Text // 상세페이지용 본문 내용
-  price       String?      // 가격 (문자열로 "10,000원~" 등 표현)
-  imageUrl    String       // 썸네일 이미지
-  displayMode DisplayMode  @default(MODAL) // 모달 또는 상세페이지
-  categoryId  String
-  category    MenuCategory @relation(fields: [categoryId], references: [id])
-  orderIndex  Int          @default(0)
-  isVisible   Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  name           String       // 메뉴 이름
+  description    String?      // 간단 설명
+  content        String?      @db.Text // 상세페이지용 본문 내용
+  price          String?      // 가격 (문자열로 "10,000원~" 등 표현)
+  imageUrl       String       // 썸네일 이미지
+  detailImageUrl String?      // 상세페이지용 이미지 (세로로 긴 이미지)
+  displayMode    DisplayMode  @default(MODAL) // 모달 또는 상세페이지
+  categoryId     String
+  category       MenuCategory @relation(fields: [categoryId], references: [id])
+  orderIndex     Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([categoryId])
   @@index([orderIndex])

@@ -74,13 +74,13 @@ export default async function MenuDetailPage({ params }: MenuDetailPageProps) {
 
         {/* 메인 카드 */}
         <article className="bg-white rounded-3xl overflow-hidden shadow-xl">
-          {/* 이미지 */}
-          <div className="relative aspect-video sm:aspect-[16/9]">
+          {/* 이미지 - 상세페이지 이미지가 있으면 사용, 없으면 썸네일 사용 */}
+          <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={menu.imageUrl}
+              src={(menu as { detailImageUrl?: string }).detailImageUrl || menu.imageUrl}
               alt={menu.name}
-              className="w-full h-full object-cover"
+              className="w-full h-auto"
             />
             {/* 카테고리 뱃지 */}
             <div className="absolute top-4 left-4">

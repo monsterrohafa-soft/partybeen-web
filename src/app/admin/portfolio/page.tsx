@@ -23,6 +23,8 @@ import {
   UtensilsCrossed,
   Monitor,
   Maximize2,
+  FolderOpen,
+  Settings,
 } from 'lucide-react';
 
 interface Category {
@@ -72,6 +74,16 @@ export default function AdminPortfolioPage() {
   // 워터마크 선택
   const [selectedWatermark, setSelectedWatermark] = useState<'none' | 'partybeen' | 'chef'>('none');
   const [watermarkOpacity, setWatermarkOpacity] = useState(85); // 투명도 (0-100%)
+
+  // 카테고리 관리 상태
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+  });
+  const [showCategorySection, setShowCategorySection] = useState(false);
 
   // 폼 상태
   const [formData, setFormData] = useState({
@@ -423,6 +435,93 @@ export default function AdminPortfolioPage() {
     setShowModal(true);
   };
 
+  // 카테고리 저장
+  const handleSaveCategory = async () => {
+    if (!categoryFormData.name || !categoryFormData.slug) {
+      alert('이름과 슬러그는 필수입니다');
+      return;
+    }
+
+    try {
+      const url = editingCategory
+        ? `/api/categories/${editingCategory.id}`
+        : '/api/categories';
+      const method = editingCategory ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(categoryFormData),
+      });
+
+      if (res.ok) {
+        setShowCategoryModal(false);
+        setEditingCategory(null);
+        setCategoryFormData({ name: '', slug: '', description: '' });
+        loadData();
+      } else {
+        const error = await res.json();
+        alert(error.error || '저장 실패');
+      }
+    } catch {
+      alert('저장 중 오류가 발생했습니다');
+    }
+  };
+
+  // 카테고리 삭제
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('정말 삭제하시겠습니까? 해당 카테고리의 포트폴리오가 없어야 삭제 가능합니다.')) return;
+
+    try {
+      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        loadData();
+      } else {
+        const error = await res.json();
+        alert(error.error || '삭제 실패');
+      }
+    } catch {
+      alert('삭제 중 오류가 발생했습니다');
+    }
+  };
+
+  // 새 카테고리 모달 열기
+  const openNewCategoryModal = () => {
+    setEditingCategory(null);
+    setCategoryFormData({ name: '', slug: '', description: '' });
+    setShowCategoryModal(true);
+  };
+
+  // 카테고리 수정 모달 열기
+  const openEditCategoryModal = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryFormData({
+      name: category.name,
+      slug: category.slug,
+      description: '',
+    });
+    setShowCategoryModal(true);
+  };
+
+  // 이름으로 슬러그 자동 생성
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[가-힣]/g, (match) => {
+        // 간단한 한글-영어 변환 (일반적인 케이터링 관련 용어)
+        const map: { [key: string]: string } = {
+          '케이터링': 'catering',
+          '푸드박스': 'food-box',
+          '도시락': 'lunch-box',
+          '박스케이터링': 'box-catering',
+          '언론보도': 'press',
+        };
+        return map[name] || match;
+      })
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+  };
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -483,14 +582,83 @@ export default function AdminPortfolioPage() {
             <h2 className="text-2xl font-bold text-gray-900">포트폴리오 관리</h2>
             <p className="text-gray-500">이미지를 추가, 수정, 삭제할 수 있습니다</p>
           </div>
-          <button
-            onClick={openNewModal}
-            className="flex items-center gap-2 px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            새 항목 추가
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowCategorySection(!showCategorySection)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                showCategorySection
+                  ? 'bg-gray-200 text-gray-700'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              카테고리 관리
+            </button>
+            <button
+              onClick={openNewModal}
+              className="flex items-center gap-2 px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              새 항목 추가
+            </button>
+          </div>
         </div>
+
+        {/* 카테고리 관리 섹션 */}
+        {showCategorySection && (
+          <div className="bg-white rounded-xl p-6 mb-8 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <FolderOpen className="w-5 h-5" />
+                카테고리 관리
+              </h3>
+              <button
+                onClick={openNewCategoryModal}
+                className="flex items-center gap-2 px-3 py-1.5 bg-[#025566] text-white text-sm rounded-lg hover:bg-[#013A46] transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                새 카테고리
+              </button>
+            </div>
+            <div className="space-y-2">
+              {categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-900">{cat.name}</span>
+                    <span className="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded">
+                      {cat.slug}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      ({cat._count?.portfolios || 0}개)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openEditCategoryModal(cat)}
+                      className="p-1.5 text-gray-500 hover:text-[#025566] hover:bg-gray-100 rounded transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {categories.length === 0 && (
+                <p className="text-center text-gray-400 py-4">
+                  등록된 카테고리가 없습니다
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 카테고리 필터 */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -917,6 +1085,105 @@ export default function AdminPortfolioPage() {
               </button>
               <button
                 onClick={handleSave}
+                className="px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 카테고리 모달 */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full">
+            <div className="p-6 border-b flex items-center justify-between">
+              <h3 className="text-lg font-bold">
+                {editingCategory ? '카테고리 수정' : '새 카테고리 추가'}
+              </h3>
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* 카테고리 이름 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  카테고리 이름 *
+                </label>
+                <input
+                  type="text"
+                  value={categoryFormData.name}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setCategoryFormData((prev) => ({
+                      ...prev,
+                      name,
+                      slug: prev.slug || generateSlug(name),
+                    }));
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
+                  placeholder="예: 케이터링"
+                />
+              </div>
+
+              {/* 슬러그 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  슬러그 (URL용) *
+                </label>
+                <input
+                  type="text"
+                  value={categoryFormData.slug}
+                  onChange={(e) =>
+                    setCategoryFormData((prev) => ({
+                      ...prev,
+                      slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                    }))
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566]"
+                  placeholder="예: catering"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  영문 소문자, 숫자, 하이픈(-)만 사용 가능
+                </p>
+              </div>
+
+              {/* 설명 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  설명 (선택)
+                </label>
+                <textarea
+                  value={categoryFormData.description}
+                  onChange={(e) =>
+                    setCategoryFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#025566] resize-none"
+                  placeholder="카테고리 설명"
+                />
+              </div>
+            </div>
+
+            {/* 모달 푸터 */}
+            <div className="p-6 border-t flex gap-3 justify-end">
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveCategory}
                 className="px-4 py-2 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
               >
                 저장
