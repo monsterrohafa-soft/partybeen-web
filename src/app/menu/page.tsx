@@ -62,9 +62,6 @@ export default function MenuPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 페이지 헤더 */}
         <div className="text-center mb-10 sm:mb-14">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#025566] to-[#013A46] rounded-2xl mb-4 shadow-lg">
-            <UtensilsCrossed className="w-8 h-8 text-white" />
-          </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
             메뉴
           </h1>

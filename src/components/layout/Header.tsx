@@ -61,7 +61,7 @@ export default function Header() {
               alt={BRAND.name}
               width={200}
               height={48}
-              className="h-8 sm:h-10 w-auto"
+              className="h-12 sm:h-14 w-auto"
               priority
             />
           </Link>
@@ -72,7 +72,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#013A46] hover:bg-gray-100 transition-colors rounded-full"
+                className="relative px-4 py-2 text-lg font-bold text-gray-700 hover:text-[#013A46] hover:bg-gray-100 transition-colors rounded-full"
               >
                 {item.name}
               </Link>
