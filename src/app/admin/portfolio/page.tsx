@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 import {
   Plus,
   Trash2,
@@ -307,7 +308,7 @@ export default function AdminPortfolioPage() {
     });
   };
 
-  // 이미지 업로드
+  // 이미지 업로드 (클라이언트 직접 업로드 - 대용량 지원)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -326,23 +327,16 @@ export default function AdminPortfolioPage() {
         fileName = file.name.replace(/\.[^/.]+$/, '') + '_watermarked.jpg';
       }
 
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', fileToUpload, fileName);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataUpload,
+      // 클라이언트에서 직접 Blob Storage에 업로드 (서버리스 함수 body 제한 우회)
+      const blob = await upload(fileName, fileToUpload, {
+        access: 'public',
+        handleUploadUrl: '/api/portfolio-upload',
       });
 
-      const data = await res.json();
-      if (data.url) {
-        setFormData((prev) => ({ ...prev, imageUrl: data.url }));
-      } else {
-        alert(data.error || '업로드 실패');
-      }
+      setFormData((prev) => ({ ...prev, imageUrl: blob.url }));
     } catch (error) {
       console.error('Upload error:', error);
-      alert('업로드 중 오류가 발생했습니다');
+      alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
     } finally {
       setUploading(false);
     }
