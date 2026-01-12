@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 import {
   Plus,
   Trash2,
   Edit,
   LogOut,
-  Upload,
+  Upload as UploadIcon,
   X,
   Loader2,
   Image as ImageIcon,
@@ -120,27 +121,20 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드
+  // 상세페이지 이미지 업로드 (클라이언트 직접 업로드 - 대용량 지원)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      // 클라이언트에서 직접 Blob Storage에 업로드 (서버리스 함수 body 제한 우회)
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/menu-upload',
       });
 
-      const data = await res.json();
-      if (data.url) {
-        setMenuForm((prev) => ({ ...prev, detailImageUrl: data.url }));
-      } else {
-        alert(data.error || '업로드 실패');
-      }
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: blob.url }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
@@ -426,7 +420,7 @@ export default function AdminMenuPage() {
                         <Loader2 className="w-6 h-6 animate-spin text-[#025566]" />
                       ) : (
                         <>
-                          <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                          <UploadIcon className="w-6 h-6 text-gray-400 mb-1" />
                           <p className="text-xs text-gray-500">업로드</p>
                         </>
                       )}
@@ -460,7 +454,7 @@ export default function AdminMenuPage() {
                           <Loader2 className="w-8 h-8 mx-auto animate-spin text-[#025566]" />
                         ) : (
                           <>
-                            <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                            <UploadIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
                             <p className="text-sm text-gray-500">상세페이지용 이미지 업로드</p>
                             <p className="text-xs text-gray-400 mt-1">세로로 긴 이미지도 전체가 보입니다</p>
                           </>
