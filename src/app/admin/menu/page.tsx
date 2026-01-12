@@ -120,15 +120,59 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드
+  // 이미지 압축 함수
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+
+        // 최대 너비 제한 (세로 비율 유지)
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context 생성 실패'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('이미지 압축 실패'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // 상세페이지 이미지 업로드 (압축 포함)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
+      // 이미지 압축 (최대 너비 1200px, 품질 80%)
+      const compressedBlob = await compressImage(file, 1200, 0.8);
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', new File([compressedBlob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
 
       const res = await fetch('/api/upload', {
         method: 'POST',
