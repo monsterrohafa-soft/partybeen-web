@@ -241,13 +241,13 @@ function MenuCard({ menu }: { menu: Menu }) {
       <div className="absolute inset-0 bg-gradient-to-t from-[#013A46]/95 via-[#013A46]/40 to-transparent" />
 
       {/* 콘텐츠 */}
-      <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end">
+      <div className="absolute inset-0 p-2 sm:p-6 flex flex-col justify-end">
         <div className="transform transition-transform duration-300 group-hover:translate-y-0">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">
+          <h3 className="text-xs sm:text-xl font-bold text-white mb-0.5 sm:mb-2 truncate">
             {menu.name}
           </h3>
           {menu.price && (
-            <span className="text-sm text-[#FEE500] font-medium">{menu.price}</span>
+            <span className="text-[10px] sm:text-sm text-[#FEE500] font-medium truncate block">{menu.price}</span>
           )}
         </div>
       </div>

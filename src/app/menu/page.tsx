@@ -224,12 +224,12 @@ function MenuCard({ menu }: { menu: Menu }) {
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
       {/* 정보 */}
-      <div className="absolute inset-0 p-4 flex flex-col justify-end">
-        <h3 className="text-lg font-bold text-white leading-tight mb-1">
+      <div className="absolute inset-0 p-2 sm:p-4 flex flex-col justify-end">
+        <h3 className="text-xs sm:text-lg font-bold text-white leading-tight mb-0.5 sm:mb-1 truncate">
           {menu.name}
         </h3>
         {menu.price && (
-          <span className="text-sm text-[#FEE500] font-medium">{menu.price}</span>
+          <span className="text-[10px] sm:text-sm text-[#FEE500] font-medium truncate block">{menu.price}</span>
         )}
       </div>
     </>
