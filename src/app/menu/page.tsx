@@ -80,7 +80,7 @@ export default function MenuPage() {
           /* 메뉴 그리드 */
           <motion.div
             layout
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
+            className="grid grid-cols-3 gap-2 sm:gap-6"
           >
             <AnimatePresence mode="popLayout">
               {menus.map((menu) => (

@@ -105,7 +105,7 @@ export default function ServiceCategories() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"
+            className="grid grid-cols-3 gap-2 sm:gap-6"
           >
             {menus.map((menu) => (
               <motion.div key={menu.id} variants={itemVariants}>
