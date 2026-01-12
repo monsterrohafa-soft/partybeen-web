@@ -141,8 +141,9 @@ export default function AdminMenuPage() {
       } else {
         alert(data.error || '업로드 실패');
       }
-    } catch {
-      alert('업로드 중 오류가 발생했습니다');
+    } catch (error) {
+      console.error('Detail image upload error:', error);
+      alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
     } finally {
       setUploadingDetail(false);
     }

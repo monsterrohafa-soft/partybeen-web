@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
     return NextResponse.json(
-      { error: '업로드 중 오류가 발생했습니다' },
+      { error: `업로드 중 오류가 발생했습니다: ${errorMessage}` },
       { status: 500 }
     );
   }
