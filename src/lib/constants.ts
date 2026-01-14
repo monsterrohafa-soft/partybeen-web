@@ -47,7 +47,7 @@ export const BRAND = {
 export const SISTER_BRAND = {
   name: "CHEF'S LUNCHBOX",
   nameKo: '쉐프의 도시락',
-  url: 'https://chefbox-steel.vercel.app',
+  url: 'https://cheflunchbox.com',
   tagline: '프리미엄 도시락이 필요하신가요?',
 } as const;
 
