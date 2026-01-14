@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Phone, Mail, MessageCircle, Clock, MapPin } from 'lucide-react';
+import { Phone, Mail, MessageCircle } from 'lucide-react';
 import { CONTACT } from '@/lib/constants';
 
 export default function ContactCTA() {
@@ -127,23 +127,6 @@ export default function ContactCTA() {
           </a>
         </motion.div>
 
-        {/* 하단 정보 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-wrap justify-center gap-6 sm:gap-12 text-sm text-gray-400"
-        >
-          <div className="flex items-center gap-2">
-            <Clock size={16} />
-            <span>평일 09:00 - 18:00</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin size={16} />
-            <span>부산광역시</span>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
