@@ -130,8 +130,8 @@ export default function HeroSection() {
           className="mt-16 flex flex-wrap justify-center gap-8 sm:gap-12 text-center"
         >
           <div className="flex flex-col">
-            <span className="text-2xl sm:text-3xl font-bold text-white">500+</span>
-            <span className="text-xs sm:text-sm text-gray-400">성공적인 행사</span>
+            <span className="text-2xl sm:text-3xl font-bold text-white">20,000+</span>
+            <span className="text-xs sm:text-sm text-gray-400">누적행사</span>
           </div>
           <div className="flex flex-col">
             <span className="text-2xl sm:text-3xl font-bold text-white">98%</span>
