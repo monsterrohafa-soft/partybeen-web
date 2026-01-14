@@ -26,11 +26,11 @@ export async function generateMetadata({ params }: ProposalPageProps): Promise<M
   }
 
   return {
-    title: `${proposal.title} | ${BRAND.nameKr}`,
-    description: `${BRAND.nameKr} 제안서`,
+    title: `${proposal.title} | ${BRAND.nameKo}`,
+    description: `${BRAND.nameKo} 제안서`,
     openGraph: {
-      title: `${proposal.title} | ${BRAND.nameKr}`,
-      description: `${BRAND.nameKr} 제안서`,
+      title: `${proposal.title} | ${BRAND.nameKo}`,
+      description: `${BRAND.nameKo} 제안서`,
       type: 'article',
     },
   };
