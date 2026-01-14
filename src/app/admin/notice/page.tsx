@@ -18,6 +18,7 @@ import {
   FileText,
   Images,
   UtensilsCrossed,
+  Upload,
 } from 'lucide-react';
 
 interface Notice {
@@ -219,6 +220,13 @@ export default function AdminNoticePage() {
           >
             <FileText className="w-4 h-4" />
             공지사항
+          </Link>
+          <Link
+            href="/admin/proposal"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
+            <Upload className="w-4 h-4" />
+            제안서
           </Link>
         </div>
 

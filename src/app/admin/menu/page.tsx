@@ -21,6 +21,7 @@ import {
   EyeOff,
   Monitor,
   Maximize2,
+  Upload,
 } from 'lucide-react';
 
 interface MenuCategory {
@@ -270,6 +271,10 @@ export default function AdminMenuPage() {
           <Link href="/admin/notice" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
             <FileText className="w-4 h-4" />
             공지사항
+          </Link>
+          <Link href="/admin/proposal" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap">
+            <Upload className="w-4 h-4" />
+            제안서
           </Link>
         </div>
 
