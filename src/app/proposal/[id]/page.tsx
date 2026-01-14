@@ -54,11 +54,11 @@ export default async function ProposalPage({ params }: ProposalPageProps) {
         </div>
       </header>
 
-      {/* PDF 뷰어 */}
+      {/* PDF 뷰어 - Google Docs Viewer 사용 (모바일 호환) */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <iframe
-            src={`${proposal.fileUrl}#toolbar=1&navpanes=0`}
+            src={`https://docs.google.com/viewer?url=${encodeURIComponent(proposal.fileUrl)}&embedded=true`}
             className="w-full"
             style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}
             title={proposal.title}
@@ -66,13 +66,21 @@ export default async function ProposalPage({ params }: ProposalPageProps) {
         </div>
 
         {/* 다운로드 버튼 */}
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex justify-center gap-3">
+          <a
+            href={proposal.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
+          >
+            PDF 열기
+          </a>
           <a
             href={proposal.fileUrl}
             download={proposal.filename}
-            className="px-6 py-3 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
+            className="px-6 py-3 border border-[#025566] text-[#025566] rounded-lg hover:bg-gray-50 transition-colors"
           >
-            PDF 다운로드
+            다운로드
           </a>
         </div>
       </main>
