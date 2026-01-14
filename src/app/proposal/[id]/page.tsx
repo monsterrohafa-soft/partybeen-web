@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { BRAND } from '@/lib/constants';
+import PdfViewer from '@/components/proposal/PdfViewer';
 
 interface ProposalPageProps {
   params: Promise<{ id: string }>;
@@ -54,35 +55,13 @@ export default async function ProposalPage({ params }: ProposalPageProps) {
         </div>
       </header>
 
-      {/* PDF 뷰어 - Google Docs Viewer 사용 (모바일 호환) */}
+      {/* PDF 뷰어 */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <iframe
-            src={`https://docs.google.com/viewer?url=${encodeURIComponent(proposal.fileUrl)}&embedded=true`}
-            className="w-full"
-            style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}
-            title={proposal.title}
-          />
-        </div>
-
-        {/* 다운로드 버튼 */}
-        <div className="mt-4 flex justify-center gap-3">
-          <a
-            href={proposal.fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 py-3 bg-[#025566] text-white rounded-lg hover:bg-[#013A46] transition-colors"
-          >
-            PDF 열기
-          </a>
-          <a
-            href={proposal.fileUrl}
-            download={proposal.filename}
-            className="px-6 py-3 border border-[#025566] text-[#025566] rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            다운로드
-          </a>
-        </div>
+        <PdfViewer
+          fileUrl={proposal.fileUrl}
+          filename={proposal.filename}
+          title={proposal.title}
+        />
       </main>
     </div>
   );
