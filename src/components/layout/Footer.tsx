@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Instagram, Phone, Mail, ArrowUpRight } from 'lucide-react';
-import { CONTACT, NAV_ITEMS, BRAND } from '@/lib/constants';
+import { CONTACT, NAV_ITEMS, BRAND, SISTER_BRAND, COMPANY } from '@/lib/constants';
 
 export default function Footer() {
   return (
@@ -12,8 +12,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
           {/* 브랜드 정보 - 더 넓게 */}
           <div className="md:col-span-5">
-            <h3 className="text-2xl font-bold mb-4">{BRAND.name}</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
+            <h3 className="text-2xl font-bold mb-4">{BRAND.nameKo}</h3>
+            <p className="text-gray-300 text-sm leading-relaxed mb-6 max-w-sm">
               {BRAND.description}
             </p>
 
@@ -47,6 +47,20 @@ export default function Footer() {
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                   <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.89 5.32 4.71 6.72-.17.61-.64 2.21-.73 2.56-.12.45.16.44.34.32.14-.09 2.17-1.47 3.05-2.06.53.07 1.07.11 1.63.11 5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                 </svg>
+              </a>
+            </div>
+
+            {/* 자매 브랜드 */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <p className="text-xs text-gray-400 mb-2">자매 브랜드</p>
+              <a
+                href={SISTER_BRAND.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                {SISTER_BRAND.nameKo}
+                <ArrowUpRight size={14} />
               </a>
             </div>
           </div>
@@ -108,12 +122,31 @@ export default function Footer() {
         </div>
 
         {/* 구분선 */}
-        <div className="section-divider my-10" />
+        <div className="border-t border-white/10 my-10" />
+
+        {/* 회사 정보 */}
+        <div className="text-xs text-gray-400 space-y-1 mb-8">
+          <p>
+            <span className="font-medium text-gray-300">상호</span> {COMPANY.name} |
+            <span className="font-medium text-gray-300 ml-2">사업자등록번호</span> {COMPANY.businessNumber} |
+            <span className="font-medium text-gray-300 ml-2">통신판매업 신고</span> {COMPANY.onlineSalesNumber}
+          </p>
+          <p>
+            <span className="font-medium text-gray-300">전화</span> {COMPANY.phone} |
+            <span className="font-medium text-gray-300 ml-2">주소</span> {COMPANY.address}
+          </p>
+          <p>
+            <span className="font-medium text-gray-300">개인정보관리책임자</span> {COMPANY.privacyOfficer} {COMPANY.privacyEmail}
+          </p>
+          <p>
+            <span className="font-medium text-gray-300">입금계좌</span> {CONTACT.bank.name} {CONTACT.bank.account} (예금주: {CONTACT.bank.holder})
+          </p>
+        </div>
 
         {/* 하단 저작권 */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} {BRAND.name}. All rights reserved.
+            &copy; {new Date().getFullYear()} {BRAND.nameKo}. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-gray-300 transition-colors">
