@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 import {
   Plus,
   Trash2,
@@ -95,19 +96,26 @@ export default function AdminProposalPage() {
           return;
         }
       } else {
-        // 새로 업로드
-        const fd = new FormData();
-        fd.append('title', formData.title);
-        fd.append('file', formData.file!);
+        // 1. 클라이언트에서 직접 Blob에 업로드
+        const blob = await upload(formData.file!.name, formData.file!, {
+          access: 'public',
+          handleUploadUrl: '/api/proposal/upload',
+        });
 
+        // 2. DB에 저장
         const res = await fetch('/api/proposal', {
           method: 'POST',
-          body: fd,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formData.title,
+            filename: formData.file!.name,
+            fileUrl: blob.url,
+          }),
         });
 
         if (!res.ok) {
           const error = await res.json();
-          alert(error.error || '업로드 실패');
+          alert(error.error || '저장 실패');
           return;
         }
       }
@@ -119,7 +127,8 @@ export default function AdminProposalPage() {
         fileInputRef.current.value = '';
       }
       loadData();
-    } catch {
+    } catch (err) {
+      console.error('Upload error:', err);
       alert('저장 중 오류가 발생했습니다');
     } finally {
       setSaving(false);
