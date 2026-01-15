@@ -26,7 +26,6 @@ import {
   Maximize2,
   FolderOpen,
   Settings,
-  Upload,
 } from 'lucide-react';
 
 interface Category {
