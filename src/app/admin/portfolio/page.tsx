@@ -575,6 +575,13 @@ export default function AdminPortfolioPage() {
             <Upload className="w-4 h-4" />
             제안서
           </Link>
+          <Link
+            href="/admin/settings"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
+            <Settings className="w-4 h-4" />
+            설정
+          </Link>
         </div>
 
         {/* 상단 액션 */}
