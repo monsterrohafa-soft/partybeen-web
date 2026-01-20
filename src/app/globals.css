@@ -216,6 +216,16 @@ body {
   transform: translateY(-2px);
 }
 
+/* 스크롤바 숨기기 (모바일 가로 스크롤용) */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE, Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari */
+}
+
 /* 스크롤바 스타일링 */
 ::-webkit-scrollbar {
   width: 8px;
