@@ -1,5 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import prisma from '@/lib/prisma';
+
+// DB에서 SMTP 설정 가져오기
+async function getSmtpSettings() {
+  const settings = await prisma.siteSetting.findMany({
+    where: {
+      key: {
+        in: ['smtp_email', 'smtp_password'],
+      },
+    },
+  });
+
+  const settingsMap: Record<string, string> = {};
+  settings.forEach((s) => {
+    settingsMap[s.key] = s.value;
+  });
+
+  return {
+    email: settingsMap.smtp_email || process.env.NAVER_EMAIL,
+    password: settingsMap.smtp_password || process.env.NAVER_PASSWORD,
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,14 +36,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // DB에서 SMTP 설정 가져오기
+    const smtp = await getSmtpSettings();
+
+    if (!smtp.email || !smtp.password) {
+      console.error('SMTP 설정이 없습니다.');
+      return NextResponse.json(
+        { error: '이메일 설정이 완료되지 않았습니다. 관리자에게 문의하세요.' },
+        { status: 500 }
+      );
+    }
+
     // 네이버 SMTP 설정
     const transporter = nodemailer.createTransport({
       host: 'smtp.naver.com',
       port: 587,
       secure: false,
       auth: {
-        user: process.env.NAVER_EMAIL,
-        pass: process.env.NAVER_PASSWORD,
+        user: smtp.email,
+        pass: smtp.password,
       },
     });
 
@@ -53,7 +86,7 @@ ${message}
 
     // 이메일 전송
     await transporter.sendMail({
-      from: `"파티빈 홈페이지" <${process.env.NAVER_EMAIL}>`,
+      from: `"파티빈 홈페이지" <${smtp.email}>`,
       to: 'partybeen@naver.com',
       subject: `[파티빈] 새로운 견적 문의 - ${name}`,
       text: mailContent,
