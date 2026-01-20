@@ -93,10 +93,12 @@ ${message}
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('이메일 전송 오류:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('이메일 전송 오류:', errorMessage);
+    console.error('상세 에러:', error);
     return NextResponse.json(
-      { error: '이메일 전송에 실패했습니다.' },
+      { error: `이메일 전송 실패: ${errorMessage}` },
       { status: 500 }
     );
   }
