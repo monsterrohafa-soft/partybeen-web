@@ -26,16 +26,13 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      // Formspree로 전송 (나중에 실제 ID로 교체)
-      const response = await fetch('https://formspree.io/f/xpwzgvqr', {
+      // 자체 API로 이메일 전송
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          _subject: `[파티빈] 새로운 견적 문의 - ${formData.name}`,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -49,6 +46,9 @@ export default function ContactPage() {
           guestCount: '',
           message: '',
         });
+      } else {
+        const data = await response.json();
+        alert(data.error || '전송 중 오류가 발생했습니다.');
       }
     } catch (error) {
       alert('전송 중 오류가 발생했습니다. 다시 시도해주세요.');
