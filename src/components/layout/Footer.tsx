@@ -140,9 +140,6 @@ export default function Footer() {
           <p>
             <span className="font-medium text-gray-300">개인정보관리책임자</span> {COMPANY.privacyOfficer} {COMPANY.privacyEmail}
           </p>
-          <p>
-            <span className="font-medium text-gray-300">입금계좌</span> {CONTACT.bank.name} {CONTACT.bank.account} (예금주: {CONTACT.bank.holder})
-          </p>
         </div>
 
         {/* 하단 저작권 */}
