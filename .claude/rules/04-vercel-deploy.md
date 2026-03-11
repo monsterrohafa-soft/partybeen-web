@@ -3,31 +3,37 @@
 ## 자동 배포 (GitHub 연동)
 
 ```bash
-git add .
-git commit -m "변경 내용"
-git push
+git add . && git commit -m "변경 내용" && git push
 # → Vercel 자동 배포 시작 (1-2분)
 ```
 
-## 배포 워크플로우
-
-```
-코드 수정 → git add → git commit → git push → Vercel 자동 배포
-```
-
-## 빌드 테스트
+## 빌드 스크립트
 
 ```bash
-# 로컬 빌드 테스트
-ssh rohafa2@rohafa88.synology.me "export PATH=/usr/local/bin:\$PATH && cd /volume1/backup/app/partybeen && npm run build"
+# Vercel 빌드 명령어 (package.json)
+prisma generate && prisma db push && next build
+```
+
+## 로컬 빌드 테스트
+
+```bash
+cd /Users/riky/project/partybeen
+pnpm build
 ```
 
 ## 트러블슈팅
 
 ### 빌드 에러 시
 ```bash
-# node_modules 재설치
-ssh rohafa2@rohafa88.synology.me "export PATH=/usr/local/bin:\$PATH && cd /volume1/backup/app/partybeen && rm -rf node_modules && npm install"
+rm -rf node_modules .next
+pnpm install
+pnpm build
+```
+
+### Prisma 관련 에러
+```bash
+pnpm prisma generate
+pnpm prisma db push
 ```
 
 ### Vercel 배포 실패 시
