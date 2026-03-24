@@ -74,6 +74,14 @@ export function getR2KeyFromUrl(url: string): string | null {
   return url.replace(`${publicUrl}/`, '');
 }
 
+/** 파일명을 URL-safe하게 변환 (공백, 괄호, 한글 등 제거) */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
 /** 이미지 파일을 압축하여 R2에 업로드 (원본도 백업) */
 export async function uploadImageToR2(
   buffer: Buffer,
@@ -81,7 +89,7 @@ export async function uploadImageToR2(
   folder: string = 'portfolio',
 ): Promise<string> {
   const timestamp = Date.now();
-  const baseName = filename.replace(/\.[^.]+$/, '');
+  const baseName = sanitizeFilename(filename.replace(/\.[^.]+$/, ''));
   const originalExt = filename.split('.').pop()?.toLowerCase() || 'jpg';
 
   // 원본 백업
