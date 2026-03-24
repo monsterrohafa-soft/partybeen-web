@@ -19,9 +19,10 @@ function getR2Client() {
   });
 }
 
-/** 이미지를 WebP q90으로 압축 (시각적 무손실) */
+/** 이미지를 WebP q90으로 압축 (시각적 무손실, 초대형 이미지 자동 리사이즈) */
 export async function compressImage(buffer: Buffer): Promise<Buffer> {
   return sharp(buffer)
+    .resize({ width: 4096, height: 16383, fit: 'inside', withoutEnlargement: true })
     .webp({ quality: 90 })
     .toBuffer();
 }
