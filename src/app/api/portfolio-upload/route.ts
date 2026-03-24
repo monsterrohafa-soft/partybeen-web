@@ -1,12 +1,10 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
+import { uploadImageToR2 } from '@/lib/r2';
 
-// 포트폴리오 이미지 클라이언트 업로드용 - 서버리스 함수 body 제한 우회
+// 포트폴리오 이미지 업로드 (서버사이드 R2 업로드 + sharp 압축)
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
     // 인증 확인
     const session = await getServerSession(authOptions);
@@ -14,30 +12,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
     }
 
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        // 파일 확장자 검증
-        const ext = pathname.split('.').pop()?.toLowerCase();
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
 
-        if (!ext || !allowedExtensions.includes(ext)) {
-          throw new Error('허용되지 않는 파일 형식입니다');
-        }
+    if (!file) {
+      return NextResponse.json({ error: '파일이 없습니다' }, { status: 400 });
+    }
 
-        return {
-          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-          maximumSizeInBytes: 50 * 1024 * 1024, // 50MB
-          addRandomSuffix: true,
-        };
-      },
-      onUploadCompleted: async ({ blob }) => {
-        console.log('Portfolio upload completed:', blob.url);
-      },
-    });
+    // 파일 확장자 검증
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    if (!ext || !allowedExtensions.includes(ext)) {
+      return NextResponse.json(
+        { error: '허용되지 않는 파일 형식입니다. (JPG, PNG, WebP, GIF만 가능)' },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(jsonResponse);
+    // 파일 크기 검증 (50MB)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        { error: '파일 크기가 너무 큽니다. (최대 50MB)' },
+        { status: 400 }
+      );
+    }
+
+    // R2에 업로드 (원본 백업 + WebP q90 압축)
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const url = await uploadImageToR2(buffer, file.name, 'portfolio');
+
+    return NextResponse.json({ url });
   } catch (error) {
     console.error('Portfolio upload error:', error);
     return NextResponse.json(

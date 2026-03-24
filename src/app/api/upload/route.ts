@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { put } from '@vercel/blob';
 import { authOptions } from '@/auth';
+import { uploadImageToR2 } from '@/lib/r2';
 
 
 export async function POST(request: NextRequest) {
@@ -14,8 +14,6 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    // 워터마크는 클라이언트 사이드에서 처리 예정
-    // const watermark = formData.get('watermark') as string || 'none';
 
     if (!file) {
       return NextResponse.json({ error: '파일이 없습니다' }, { status: 400 });
@@ -30,23 +28,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 파일 크기 검증 (10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // 파일 크기 검증 (50MB)
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: '파일 크기가 너무 큽니다. (최대 10MB)' },
+        { error: '파일 크기가 너무 큽니다. (최대 50MB)' },
         { status: 400 }
       );
     }
 
-    // Vercel Blob에 업로드
-    const blob = await put(`portfolio/${Date.now()}-${file.name}`, file, {
-      access: 'public',
-    });
+    // R2에 업로드 (원본 백업 + WebP q90 압축)
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const url = await uploadImageToR2(buffer, file.name, 'portfolio');
 
     return NextResponse.json({
       success: true,
-      url: blob.url,
+      url,
     });
   } catch (error) {
     console.error('Upload error:', error);

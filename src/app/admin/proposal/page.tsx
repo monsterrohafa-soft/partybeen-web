@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { upload } from '@vercel/blob/client';
 import {
   Plus,
   Trash2,
@@ -97,11 +96,22 @@ export default function AdminProposalPage() {
           return;
         }
       } else {
-        // 1. 클라이언트에서 직접 Blob에 업로드
-        const blob = await upload(formData.file!.name, formData.file!, {
-          access: 'public',
-          handleUploadUrl: '/api/proposal/upload',
+        // 1. 서버에 FormData로 PDF 업로드 (R2)
+        const uploadData = new FormData();
+        uploadData.append('file', formData.file!);
+
+        const uploadRes = await fetch('/api/proposal/upload', {
+          method: 'POST',
+          body: uploadData,
         });
+
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json();
+          alert(err.error || '업로드 실패');
+          return;
+        }
+
+        const { url: fileUrl } = await uploadRes.json();
 
         // 2. DB에 저장
         const res = await fetch('/api/proposal', {
@@ -110,7 +120,7 @@ export default function AdminProposalPage() {
           body: JSON.stringify({
             title: formData.title,
             filename: formData.file!.name,
-            fileUrl: blob.url,
+            fileUrl,
           }),
         });
 

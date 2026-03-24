@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/auth';
-import { del } from '@vercel/blob';
+import { deleteFromR2, getR2KeyFromUrl } from '@/lib/r2';
 
 // GET: 단일 포트폴리오 조회
 export async function GET(
@@ -98,12 +98,15 @@ export async function DELETE(
       where: { id },
     });
 
-    // Vercel Blob에서 이미지 삭제 (URL이 blob.vercel-storage.com인 경우만)
-    if (existing?.imageUrl?.includes('blob.vercel-storage.com')) {
-      try {
-        await del(existing.imageUrl);
-      } catch (e) {
-        console.warn('Failed to delete blob:', e);
+    // R2에서 이미지 삭제
+    if (existing?.imageUrl) {
+      const key = getR2KeyFromUrl(existing.imageUrl);
+      if (key) {
+        try {
+          await deleteFromR2(key);
+        } catch (e) {
+          console.warn('Failed to delete from R2:', e);
+        }
       }
     }
 

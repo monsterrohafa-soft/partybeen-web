@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { upload } from '@vercel/blob/client';
 import {
   Plus,
   Trash2,
@@ -95,20 +94,23 @@ export default function AdminMenuPage() {
     }
   }, [status, router, loadData]);
 
-  // 썸네일 이미지 업로드 (클라이언트 직접 업로드 - 대용량 지원)
+  // 썸네일 이미지 업로드 (서버사이드 R2 업로드 + sharp 압축)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      // 클라이언트에서 직접 Blob Storage에 업로드 (서버리스 함수 body 제한 우회)
-      const blob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/menu-upload',
-      });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      setMenuForm((prev) => ({ ...prev, imageUrl: blob.url }));
+      const res = await fetch('/api/menu-upload', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || '업로드 실패');
+      }
+      const { url } = await res.json();
+      setMenuForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (error) {
       console.error('Image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
@@ -117,20 +119,23 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드 (클라이언트 직접 업로드 - 대용량 지원)
+  // 상세페이지 이미지 업로드 (서버사이드 R2 업로드 + sharp 압축)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 클라이언트에서 직접 Blob Storage에 업로드 (서버리스 함수 body 제한 우회)
-      const blob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/menu-upload',
-      });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: blob.url }));
+      const res = await fetch('/api/menu-upload', { method: 'POST', body: formData });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || '업로드 실패');
+      }
+      const { url } = await res.json();
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));

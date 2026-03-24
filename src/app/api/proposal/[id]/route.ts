@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { del } from '@vercel/blob';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/auth';
+import { deleteFromR2, getR2KeyFromUrl } from '@/lib/r2';
 
 // GET: 제안서 상세 조회
 export async function GET(
@@ -88,11 +88,14 @@ export async function DELETE(
       );
     }
 
-    // Vercel Blob에서 파일 삭제
-    try {
-      await del(proposal.fileUrl);
-    } catch (blobError) {
-      console.error('Blob delete error:', blobError);
+    // R2에서 파일 삭제
+    const key = getR2KeyFromUrl(proposal.fileUrl);
+    if (key) {
+      try {
+        await deleteFromR2(key);
+      } catch (e) {
+        console.error('R2 delete error:', e);
+      }
     }
 
     // DB에서 삭제
