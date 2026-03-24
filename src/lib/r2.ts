@@ -83,7 +83,7 @@ function sanitizeFilename(name: string): string {
     .replace(/^_|_$/g, '');
 }
 
-/** 이미지 파일을 압축하여 R2에 업로드 (원본도 백업) */
+/** 이미지 파일을 압축하여 R2에 업로드 */
 export async function uploadImageToR2(
   buffer: Buffer,
   filename: string,
@@ -91,18 +91,10 @@ export async function uploadImageToR2(
 ): Promise<string> {
   const timestamp = Date.now();
   const baseName = sanitizeFilename(filename.replace(/\.[^.]+$/, ''));
-  const originalExt = filename.split('.').pop()?.toLowerCase() || 'jpg';
 
-  // 원본 백업
-  const originalKey = `originals/${folder}/${timestamp}-${baseName}.${originalExt}`;
-  await uploadToR2(buffer, originalKey, `image/${originalExt === 'jpg' ? 'jpeg' : originalExt}`);
-
-  // WebP q90 압축 후 업로드
   const compressed = await compressImage(buffer);
-  const compressedKey = `images/${folder}/${timestamp}-${baseName}.webp`;
-  const url = await uploadToR2(compressed, compressedKey, 'image/webp');
-
-  return url;
+  const key = `images/${folder}/${timestamp}-${baseName}.webp`;
+  return uploadToR2(compressed, key, 'image/webp');
 }
 
 /** PDF 파일을 R2에 업로드 (압축 없이) */
