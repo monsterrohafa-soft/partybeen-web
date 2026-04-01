@@ -106,8 +106,18 @@ export default function AdminMenuPage() {
 
       const res = await fetch('/api/menu-upload', { method: 'POST', body: formData });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '업로드 실패');
+        let errorMessage = '업로드 실패';
+        try {
+          const err = await res.json();
+          errorMessage = err.error || errorMessage;
+        } catch {
+          if (res.status === 413) {
+            errorMessage = '파일 크기가 너무 큽니다. 더 작은 이미지를 사용해주세요.';
+          } else {
+            errorMessage = `서버 오류 (${res.status})`;
+          }
+        }
+        throw new Error(errorMessage);
       }
       const { url } = await res.json();
       setMenuForm((prev) => ({ ...prev, imageUrl: url }));
@@ -131,8 +141,18 @@ export default function AdminMenuPage() {
 
       const res = await fetch('/api/menu-upload', { method: 'POST', body: formData });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '업로드 실패');
+        let errorMessage = '업로드 실패';
+        try {
+          const err = await res.json();
+          errorMessage = err.error || errorMessage;
+        } catch {
+          if (res.status === 413) {
+            errorMessage = '파일 크기가 너무 큽니다. 더 작은 이미지를 사용해주세요.';
+          } else {
+            errorMessage = `서버 오류 (${res.status})`;
+          }
+        }
+        throw new Error(errorMessage);
       }
       const { url } = await res.json();
       setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
