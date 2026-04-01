@@ -129,50 +129,15 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 클라이언트에서 이미지 리사이즈 (canvas API, 최대 너비 제한)
-  const resizeImage = (file: File, maxWidth: number): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) { reject(new Error('Canvas context 없음')); return; }
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => blob ? resolve(blob) : reject(new Error('Blob 생성 실패')),
-          'image/jpeg',
-          0.92,
-        );
-      };
-      img.onerror = () => reject(new Error('이미지 로드 실패'));
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
-  // 상세페이지 이미지 업로드 (클라이언트 리사이즈 후 서버 업로드, R2에서는 압축 없이 저장)
+  // 상세페이지 이미지 업로드 (압축 없이 원본 그대로 R2 업로드)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 클라이언트에서 최대 4096px로 리사이즈 (JPEG 92% 품질)
-      const resizedBlob = await resizeImage(file, 4096);
-      const resizedFile = new File(
-        [resizedBlob],
-        file.name.replace(/\.[^/.]+$/, '.jpg'),
-        { type: 'image/jpeg' },
-      );
-
       const formData = new FormData();
-      formData.append('file', resizedFile);
+      formData.append('file', file);
 
       const res = await fetch('/api/menu-detail-upload', { method: 'POST', body: formData });
       if (!res.ok) {

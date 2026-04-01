@@ -3,10 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { uploadImageToR2 } from '@/lib/r2';
 
-// body 크기 제한 해제 (이미지 업로드용, 최대 50MB)
-export const runtime = 'nodejs';
-export const maxDuration = 60;
-
 // 메뉴 이미지 업로드 (서버사이드 R2 업로드 + sharp 압축)
 export async function POST(request: NextRequest) {
   try {

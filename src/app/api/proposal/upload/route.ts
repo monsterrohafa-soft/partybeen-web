@@ -3,10 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
 import { uploadPdfToR2 } from '@/lib/r2';
 
-// body 크기 제한 해제 (PDF 업로드용, 최대 50MB)
-export const runtime = 'nodejs';
-export const maxDuration = 60;
-
 // 제안서 PDF 업로드 (서버사이드 R2 업로드, 압축 없이)
 export async function POST(request: NextRequest) {
   try {

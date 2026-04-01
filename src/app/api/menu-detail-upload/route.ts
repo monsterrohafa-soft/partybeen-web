@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/auth';
-import { uploadToR2, getR2PublicUrl } from '@/lib/r2';
-
-// body 크기 제한 확장 + 타임아웃 연장
-export const runtime = 'nodejs';
-export const maxDuration = 60;
+import { uploadToR2 } from '@/lib/r2';
 
 // 메뉴 상세페이지 이미지 업로드 (압축 없이 원본 그대로 R2 업로드)
 export async function POST(request: NextRequest) {
