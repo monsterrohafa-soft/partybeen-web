@@ -136,26 +136,38 @@ export default function AdminMenuPage() {
 
     setUploadingDetail(true);
     try {
-      // 1. 서버에서 presigned URL 발급 (JSON만 주고받으니 body 제한 안 걸림)
-      const res = await fetch('/api/menu-detail-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'URL 발급 실패');
+      // 1단계: 서버에서 presigned URL 발급
+      let uploadUrl: string;
+      let publicUrl: string;
+      try {
+        const res = await fetch('/api/menu-detail-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'URL 발급 실패');
+        }
+        const data = await res.json();
+        uploadUrl = data.uploadUrl;
+        publicUrl = data.publicUrl;
+      } catch (error) {
+        throw new Error('[1단계] URL 발급 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
       }
-      const { uploadUrl, publicUrl } = await res.json();
 
-      // 2. 클라이언트에서 R2에 직접 업로드 (원본 그대로, Vercel 경유 안 함)
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      });
-      if (!uploadRes.ok) {
-        throw new Error(`R2 업로드 실패 (${uploadRes.status})`);
+      // 2단계: R2에 직접 업로드
+      try {
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+        });
+        if (!uploadRes.ok) {
+          const text = await uploadRes.text();
+          throw new Error(`${uploadRes.status} - ${text.slice(0, 200)}`);
+        }
+      } catch (error) {
+        throw new Error('[2단계] R2 업로드 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
       }
 
       setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
