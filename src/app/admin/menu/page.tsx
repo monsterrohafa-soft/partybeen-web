@@ -129,36 +129,64 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드 (presigned URL로 R2 직접 업로드, 압축 없음, 용량 제한 없음)
+  // 클라이언트에서 이미지 리사이즈 (canvas API, 최대 너비 제한)
+  const resizeImage = (file: File, maxWidth: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas context 없음')); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => blob ? resolve(blob) : reject(new Error('Blob 생성 실패')),
+          'image/jpeg',
+          0.92,
+        );
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // 상세페이지 이미지 업로드 (클라이언트 리사이즈 후 서버 업로드, R2에서는 압축 없이 저장)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 1. presigned URL 발급
-      const res = await fetch('/api/menu-detail-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-      });
+      // 클라이언트에서 최대 4096px로 리사이즈 (JPEG 92% 품질)
+      const resizedBlob = await resizeImage(file, 4096);
+      const resizedFile = new File(
+        [resizedBlob],
+        file.name.replace(/\.[^/.]+$/, '.jpg'),
+        { type: 'image/jpeg' },
+      );
+
+      const formData = new FormData();
+      formData.append('file', resizedFile);
+
+      const res = await fetch('/api/menu-detail-upload', { method: 'POST', body: formData });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'URL 발급 실패');
+        let errorMessage = '업로드 실패';
+        try {
+          const err = await res.json();
+          errorMessage = err.error || errorMessage;
+        } catch {
+          errorMessage = `서버 오류 (${res.status})`;
+        }
+        throw new Error(errorMessage);
       }
-      const { uploadUrl, publicUrl } = await res.json();
-
-      // 2. R2에 직접 업로드 (원본 그대로, 압축 없음)
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      });
-      if (!uploadRes.ok) {
-        throw new Error(`R2 업로드 실패 (${uploadRes.status})`);
-      }
-
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
+      const { url } = await res.json();
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
