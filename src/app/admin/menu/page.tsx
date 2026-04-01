@@ -129,34 +129,46 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 클라이언트 이미지 변환 (고해상도 유지, JPEG 변환으로 용량만 줄임)
+  // 클라이언트 이미지 변환 (4MB 이하 보장, 최대한 고품질 유지)
   const convertForUpload = (file: File): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      // 4MB 이하면 그대로 사용
-      if (file.size <= 4 * 1024 * 1024) {
-        resolve(file);
-        return;
-      }
+    const MAX_SIZE = 4 * 1024 * 1024;
+    if (file.size <= MAX_SIZE) return Promise.resolve(file);
 
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
-        ctx.drawImage(img, 0, 0);
+        const tryConvert = (maxDim: number, quality: number) => {
+          let w = img.width, h = img.height;
+          const ratio = Math.min(maxDim / Math.max(w, h), 1);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
 
-        // JPEG 95% 품질로 변환 (해상도 유지, 용량만 줄임)
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) { reject(new Error('이미지 변환 실패')); return; }
-            const converted = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' });
-            resolve(converted);
-          },
-          'image/jpeg',
-          0.95,
-        );
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) { reject(new Error('변환 실패')); return; }
+              if (blob.size <= MAX_SIZE) {
+                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' }));
+              } else if (quality > 0.6) {
+                tryConvert(maxDim, quality - 0.1);
+              } else if (maxDim > 1200) {
+                tryConvert(maxDim - 500, 0.9);
+              } else {
+                // 최종 fallback
+                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' }));
+              }
+            },
+            'image/jpeg',
+            quality,
+          );
+        };
+        tryConvert(4096, 0.92);
       };
       img.onerror = () => reject(new Error('이미지 로드 실패'));
       img.src = URL.createObjectURL(file);
