@@ -94,32 +94,77 @@ export default function AdminMenuPage() {
     }
   }, [status, router, loadData]);
 
-  // 썸네일 이미지 업로드 (서버사이드 R2 업로드 + sharp 압축)
+  // Worker 경유 이미지 업로드 (통합)
+  const uploadToWorker = async (
+    file: File | Blob,
+    filename: string,
+    contentType: string,
+    folder: string,
+  ): Promise<string> => {
+    // 1단계: 업로드 URL + 토큰 발급
+    const res = await fetch('/api/image-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, contentType, folder }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || '업로드 정보 발급 실패');
+    }
+    const { uploadUrl, token, publicUrl } = await res.json();
+
+    // 2단계: Worker에 직접 업로드
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
+      body: file,
+    });
+    if (!uploadRes.ok) {
+      const text = await uploadRes.text();
+      throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
+    }
+    return publicUrl;
+  };
+
+  // 클라이언트 이미지 압축 (썸네일용: WebP 지원 시 WebP, 아니면 JPEG)
+  const compressImage = (file: File, maxDim: number, quality: number): Promise<{ blob: Blob; ext: string; type: string }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const ratio = Math.min(maxDim / Math.max(w, h), 1);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(
+          (blob) => blob ? resolve({ blob, ext: 'webp', type: 'image/webp' }) : reject(new Error('변환 실패')),
+          'image/webp',
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // 썸네일 이미지 업로드 (클라이언트 압축 + Worker 경유)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/menu-upload', { method: 'POST', body: formData });
-      if (!res.ok) {
-        let errorMessage = '업로드 실패';
-        try {
-          const err = await res.json();
-          errorMessage = err.error || errorMessage;
-        } catch {
-          if (res.status === 413) {
-            errorMessage = '파일 크기가 너무 큽니다. 더 작은 이미지를 사용해주세요.';
-          } else {
-            errorMessage = `서버 오류 (${res.status})`;
-          }
-        }
-        throw new Error(errorMessage);
-      }
-      const { url } = await res.json();
+      // 클라이언트에서 WebP q90, 최대 2048px로 압축
+      const { blob, ext, type } = await compressImage(file, 2048, 0.9);
+      const filename = file.name.replace(/\.[^/.]+$/, `.${ext}`);
+      const url = await uploadToWorker(blob, filename, type, 'menu');
       setMenuForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (error) {
       console.error('Image upload error:', error);
@@ -129,40 +174,15 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드 (Worker 경유 R2 직접 업로드, 원본 그대로, 용량 무제한)
+  // 상세페이지 이미지 업로드 (원본 그대로, 무압축)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 1단계: 서버에서 업로드 URL + 토큰 발급
-      const res = await fetch('/api/menu-detail-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '업로드 정보 발급 실패');
-      }
-      const { uploadUrl, token, publicUrl } = await res.json();
-
-      // 2단계: Cloudflare Worker에 직접 업로드 (원본 그대로, Vercel 경유 안 함)
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-          'X-Upload-Token': token,
-        },
-        body: file,
-      });
-      if (!uploadRes.ok) {
-        const text = await uploadRes.text();
-        throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
-      }
-
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
+      const url = await uploadToWorker(file, file.name, file.type, 'menu-detail');
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));

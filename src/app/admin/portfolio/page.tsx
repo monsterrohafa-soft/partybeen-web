@@ -307,7 +307,60 @@ export default function AdminPortfolioPage() {
     });
   };
 
-  // 이미지 업로드 (클라이언트 직접 업로드 - 대용량 지원)
+  // 클라이언트 이미지 압축 (WebP q90, 최대 2048px)
+  const compressImage = (source: File | Blob, maxDim: number, quality: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const ratio = Math.min(maxDim / Math.max(w, h), 1);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(
+          (blob) => blob ? resolve(blob) : reject(new Error('변환 실패')),
+          'image/webp',
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = URL.createObjectURL(source);
+    });
+  };
+
+  // Worker 경유 이미지 업로드
+  const uploadToWorker = async (blob: Blob, filename: string, contentType: string, folder: string): Promise<string> => {
+    const res = await fetch('/api/image-upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, contentType, folder }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || '업로드 정보 발급 실패');
+    }
+    const { uploadUrl, token, publicUrl } = await res.json();
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
+      body: blob,
+    });
+    if (!uploadRes.ok) {
+      const text = await uploadRes.text();
+      throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
+    }
+    return publicUrl;
+  };
+
+  // 이미지 업로드 (Worker 경유, 클라이언트 압축)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -322,25 +375,13 @@ export default function AdminPortfolioPage() {
       if (selectedWatermark !== 'none') {
         const watermarkedBlob = await applyWatermark(file, selectedWatermark, watermarkOpacity);
         fileToUpload = watermarkedBlob;
-        // 파일명에서 확장자 제거 후 .jpg 추가
         fileName = file.name.replace(/\.[^/.]+$/, '') + '_watermarked.jpg';
       }
 
-      // 서버에 FormData로 업로드 (R2 + sharp 압축)
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', fileToUpload instanceof Blob ? new File([fileToUpload], fileName) : fileToUpload);
-
-      const res = await fetch('/api/portfolio-upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '업로드 실패');
-      }
-
-      const { url } = await res.json();
+      // 클라이언트에서 WebP q90, 최대 2048px로 압축
+      const compressed = await compressImage(fileToUpload, 2048, 0.9);
+      const webpName = fileName.replace(/\.[^/.]+$/, '.webp');
+      const url = await uploadToWorker(compressed, webpName, 'image/webp', 'portfolio');
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (error) {
       console.error('Upload error:', error);
