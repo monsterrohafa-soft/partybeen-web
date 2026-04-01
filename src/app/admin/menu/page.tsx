@@ -156,22 +156,30 @@ export default function AdminMenuPage() {
         throw new Error('[1단계] URL 발급 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
       }
 
-      // 2단계: R2에 직접 업로드
-      try {
-        console.log('[2단계] uploadUrl:', uploadUrl.substring(0, 120));
-        const uploadRes = await fetch(uploadUrl, {
-          method: 'PUT',
-          mode: 'cors',
-          body: file,
-        });
-        if (!uploadRes.ok) {
-          const text = await uploadRes.text();
-          throw new Error(`${uploadRes.status} - ${text.slice(0, 200)}`);
-        }
-      } catch (error) {
-        const urlHost = uploadUrl ? new URL(uploadUrl).hostname : 'unknown';
-        throw new Error(`[2단계] R2 업로드 실패 (host: ${urlHost}): ` + (error instanceof Error ? error.message : '알 수 없는 오류'));
-      }
+      // 2단계: R2에 직접 업로드 (XMLHttpRequest로 상세 에러 확인)
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl, true);
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`[2단계] R2 응답 ${xhr.status}: ${xhr.responseText?.slice(0, 200)}`));
+          }
+        };
+        xhr.onerror = () => {
+          reject(new Error(`[2단계] 네트워크 에러 (readyState: ${xhr.readyState}, status: ${xhr.status})`));
+        };
+        xhr.ontimeout = () => {
+          reject(new Error('[2단계] 타임아웃'));
+        };
+        xhr.onabort = () => {
+          reject(new Error('[2단계] 중단됨'));
+        };
+
+        xhr.send(file);
+      });
 
       setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
     } catch (error) {
