@@ -129,59 +129,66 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드 (presigned URL로 R2 직접 업로드, 압축 없음, 용량 무제한)
+  // 클라이언트 이미지 변환 (고해상도 유지, JPEG 변환으로 용량만 줄임)
+  const convertForUpload = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      // 4MB 이하면 그대로 사용
+      if (file.size <= 4 * 1024 * 1024) {
+        resolve(file);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
+        ctx.drawImage(img, 0, 0);
+
+        // JPEG 95% 품질로 변환 (해상도 유지, 용량만 줄임)
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error('이미지 변환 실패')); return; }
+            const converted = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' });
+            resolve(converted);
+          },
+          'image/jpeg',
+          0.95,
+        );
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // 상세페이지 이미지 업로드 (클라이언트 변환 후 서버 업로드, R2에서 추가 압축 없음)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 1단계: 서버에서 presigned URL 발급
-      let uploadUrl: string;
-      let publicUrl: string;
-      try {
-        const res = await fetch('/api/menu-detail-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, contentType: file.type }),
-        });
-        if (!res.ok) {
+      // 4MB 초과 시 JPEG 변환 (해상도 유지)
+      const uploadFile = await convertForUpload(file);
+
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+
+      const res = await fetch('/api/menu-detail-upload', { method: 'POST', body: formData });
+      if (!res.ok) {
+        let errorMessage = '업로드 실패';
+        try {
           const err = await res.json();
-          throw new Error(err.error || 'URL 발급 실패');
+          errorMessage = err.error || errorMessage;
+        } catch {
+          errorMessage = `서버 오류 (${res.status})`;
         }
-        const data = await res.json();
-        uploadUrl = data.uploadUrl;
-        publicUrl = data.publicUrl;
-      } catch (error) {
-        throw new Error('[1단계] URL 발급 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+        throw new Error(errorMessage);
       }
-
-      // 2단계: R2에 직접 업로드 (XMLHttpRequest로 상세 에러 확인)
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', uploadUrl, true);
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(new Error(`[2단계] R2 응답 ${xhr.status}: ${xhr.responseText?.slice(0, 200)}`));
-          }
-        };
-        xhr.onerror = () => {
-          reject(new Error(`[2단계] 네트워크 에러 (readyState: ${xhr.readyState}, status: ${xhr.status})`));
-        };
-        xhr.ontimeout = () => {
-          reject(new Error('[2단계] 타임아웃'));
-        };
-        xhr.onabort = () => {
-          reject(new Error('[2단계] 중단됨'));
-        };
-
-        xhr.send(file);
-      });
-
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
+      const { url } = await res.json();
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));

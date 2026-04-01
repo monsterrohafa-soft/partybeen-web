@@ -1,0 +1,8 @@
+{
+  "name": "partybeen-upload",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  }
+}
