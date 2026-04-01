@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const ext = filename.split('.').pop()?.toLowerCase() || 'jpg';
     const key = `images/menu-detail/${timestamp}-${safeName}.${ext}`;
 
-    const { uploadUrl, publicUrl } = await getPresignedUploadUrl(key, contentType);
+    const { uploadUrl, publicUrl } = await getPresignedUploadUrl(key);
 
     return NextResponse.json({ uploadUrl, publicUrl });
   } catch (error) {

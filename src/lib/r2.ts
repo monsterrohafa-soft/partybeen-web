@@ -101,16 +101,14 @@ export async function uploadImageToR2(
 /** Presigned URL 발급 (클라이언트 직접 업로드용) */
 export async function getPresignedUploadUrl(
   key: string,
-  contentType: string,
 ): Promise<{ uploadUrl: string; publicUrl: string }> {
   const client = getR2Client();
   const bucket = getEnvVar('R2_BUCKET_NAME');
 
+  // 서명에 ContentType/CacheControl을 포함하지 않음 (클라이언트 헤더 불일치 방지)
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
-    ContentType: contentType,
-    CacheControl: 'public, max-age=31536000, immutable',
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
