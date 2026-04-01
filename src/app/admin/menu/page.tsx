@@ -158,8 +158,10 @@ export default function AdminMenuPage() {
 
       // 2단계: R2에 직접 업로드
       try {
+        console.log('[2단계] uploadUrl:', uploadUrl.substring(0, 120));
         const uploadRes = await fetch(uploadUrl, {
           method: 'PUT',
+          mode: 'cors',
           body: file,
         });
         if (!uploadRes.ok) {
@@ -167,7 +169,8 @@ export default function AdminMenuPage() {
           throw new Error(`${uploadRes.status} - ${text.slice(0, 200)}`);
         }
       } catch (error) {
-        throw new Error('[2단계] R2 업로드 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+        const urlHost = uploadUrl ? new URL(uploadUrl).hostname : 'unknown';
+        throw new Error(`[2단계] R2 업로드 실패 (host: ${urlHost}): ` + (error instanceof Error ? error.message : '알 수 없는 오류'));
       }
 
       setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
