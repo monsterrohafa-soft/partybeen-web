@@ -105,11 +105,11 @@ export async function getPresignedUploadUrl(
   const accountId = getEnvVar('R2_ACCOUNT_ID');
   const bucket = getEnvVar('R2_BUCKET_NAME');
 
-  // virtual-hosted style endpoint (CORS가 이 도메인에 설정됨)
+  // virtual-hosted style: bucket.accountid.r2.cloudflarestorage.com/key
   const presignClient = new S3Client({
     region: 'auto',
-    endpoint: `https://${bucket}.${accountId}.r2.cloudflarestorage.com`,
-    forcePathStyle: true,
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: false,
     credentials: {
       accessKeyId: getEnvVar('R2_ACCESS_KEY_ID'),
       secretAccessKey: getEnvVar('R2_SECRET_ACCESS_KEY'),
