@@ -129,29 +129,36 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 상세페이지 이미지 업로드 (압축 없이 원본 그대로 R2 업로드)
+  // 상세페이지 이미지 업로드 (presigned URL로 R2 직접 업로드, 압축 없음, 용량 무제한)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/api/menu-detail-upload', { method: 'POST', body: formData });
+      // 1. 서버에서 presigned URL 발급 (JSON만 주고받으니 body 제한 안 걸림)
+      const res = await fetch('/api/menu-detail-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      });
       if (!res.ok) {
-        let errorMessage = '업로드 실패';
-        try {
-          const err = await res.json();
-          errorMessage = err.error || errorMessage;
-        } catch {
-          errorMessage = `서버 오류 (${res.status})`;
-        }
-        throw new Error(errorMessage);
+        const err = await res.json();
+        throw new Error(err.error || 'URL 발급 실패');
       }
-      const { url } = await res.json();
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
+      const { uploadUrl, publicUrl } = await res.json();
+
+      // 2. 클라이언트에서 R2에 직접 업로드 (원본 그대로, Vercel 경유 안 함)
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        throw new Error(`R2 업로드 실패 (${uploadRes.status})`);
+      }
+
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
