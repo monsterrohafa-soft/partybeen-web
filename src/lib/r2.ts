@@ -102,17 +102,27 @@ export async function uploadImageToR2(
 export async function getPresignedUploadUrl(
   key: string,
 ): Promise<{ uploadUrl: string; publicUrl: string }> {
-  const client = getR2Client();
+  const accountId = getEnvVar('R2_ACCOUNT_ID');
   const bucket = getEnvVar('R2_BUCKET_NAME');
 
-  // 서명에 ContentType/CacheControl을 포함하지 않음 (클라이언트 헤더 불일치 방지)
+  // virtual-hosted style endpoint (CORS가 이 도메인에 설정됨)
+  const presignClient = new S3Client({
+    region: 'auto',
+    endpoint: `https://${bucket}.${accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: getEnvVar('R2_ACCESS_KEY_ID'),
+      secretAccessKey: getEnvVar('R2_SECRET_ACCESS_KEY'),
+    },
+  });
+
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const uploadUrl = await getSignedUrl(client as any, command, { expiresIn: 600 });
+  const uploadUrl = await getSignedUrl(presignClient as any, command, { expiresIn: 600 });
   const publicUrl = getR2PublicUrl(key);
 
   return { uploadUrl, publicUrl };
