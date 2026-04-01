@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import sharp from 'sharp';
 
 function getEnvVar(name: string): string {
@@ -95,6 +96,28 @@ export async function uploadImageToR2(
   const compressed = await compressImage(buffer);
   const key = `images/${folder}/${timestamp}-${baseName}.webp`;
   return uploadToR2(compressed, key, 'image/webp');
+}
+
+/** Presigned URL 발급 (클라이언트 직접 업로드용) */
+export async function getPresignedUploadUrl(
+  key: string,
+  contentType: string,
+): Promise<{ uploadUrl: string; publicUrl: string }> {
+  const client = getR2Client();
+  const bucket = getEnvVar('R2_BUCKET_NAME');
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+    CacheControl: 'public, max-age=31536000, immutable',
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const uploadUrl = await getSignedUrl(client as any, command, { expiresIn: 600 });
+  const publicUrl = getR2PublicUrl(key);
+
+  return { uploadUrl, publicUrl };
 }
 
 /** PDF 파일을 R2에 업로드 (압축 없이) */
