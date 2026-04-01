@@ -129,78 +129,40 @@ export default function AdminMenuPage() {
     }
   };
 
-  // 클라이언트 이미지 변환 (4MB 이하 보장, 최대한 고품질 유지)
-  const convertForUpload = (file: File): Promise<File> => {
-    const MAX_SIZE = 4 * 1024 * 1024;
-    if (file.size <= MAX_SIZE) return Promise.resolve(file);
-
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const tryConvert = (maxDim: number, quality: number) => {
-          let w = img.width, h = img.height;
-          const ratio = Math.min(maxDim / Math.max(w, h), 1);
-          w = Math.round(w * ratio);
-          h = Math.round(h * ratio);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
-          ctx.drawImage(img, 0, 0, w, h);
-
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) { reject(new Error('변환 실패')); return; }
-              if (blob.size <= MAX_SIZE) {
-                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' }));
-              } else if (quality > 0.6) {
-                tryConvert(maxDim, quality - 0.1);
-              } else if (maxDim > 1200) {
-                tryConvert(maxDim - 500, 0.9);
-              } else {
-                // 최종 fallback
-                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg' }));
-              }
-            },
-            'image/jpeg',
-            quality,
-          );
-        };
-        tryConvert(4096, 0.92);
-      };
-      img.onerror = () => reject(new Error('이미지 로드 실패'));
-      img.src = URL.createObjectURL(file);
-    });
-  };
-
-  // 상세페이지 이미지 업로드 (클라이언트 변환 후 서버 업로드, R2에서 추가 압축 없음)
+  // 상세페이지 이미지 업로드 (Worker 경유 R2 직접 업로드, 원본 그대로, 용량 무제한)
   const handleDetailImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingDetail(true);
     try {
-      // 4MB 초과 시 JPEG 변환 (해상도 유지)
-      const uploadFile = await convertForUpload(file);
-
-      const formData = new FormData();
-      formData.append('file', uploadFile);
-
-      const res = await fetch('/api/menu-detail-upload', { method: 'POST', body: formData });
+      // 1단계: 서버에서 업로드 URL + 토큰 발급
+      const res = await fetch('/api/menu-detail-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      });
       if (!res.ok) {
-        let errorMessage = '업로드 실패';
-        try {
-          const err = await res.json();
-          errorMessage = err.error || errorMessage;
-        } catch {
-          errorMessage = `서버 오류 (${res.status})`;
-        }
-        throw new Error(errorMessage);
+        const err = await res.json();
+        throw new Error(err.error || '업로드 정보 발급 실패');
       }
-      const { url } = await res.json();
-      setMenuForm((prev) => ({ ...prev, detailImageUrl: url }));
+      const { uploadUrl, token, publicUrl } = await res.json();
+
+      // 2단계: Cloudflare Worker에 직접 업로드 (원본 그대로, Vercel 경유 안 함)
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+          'X-Upload-Token': token,
+        },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
+      }
+
+      setMenuForm((prev) => ({ ...prev, detailImageUrl: publicUrl }));
     } catch (error) {
       console.error('Detail image upload error:', error);
       alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
