@@ -307,8 +307,8 @@ export default function AdminPortfolioPage() {
     });
   };
 
-  // 클라이언트 이미지 압축 (WebP q90, 최대 2048px)
-  const compressImage = (source: File | Blob, maxDim: number, quality: number): Promise<Blob> => {
+  // 클라이언트 이미지 압축 (WebP 우선, 미지원 시 JPEG 폴백)
+  const compressImage = (source: File | Blob, maxDim: number, quality: number): Promise<{ blob: Blob; ext: string; type: string }> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -324,8 +324,21 @@ export default function AdminPortfolioPage() {
         if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
         ctx.drawImage(img, 0, 0, w, h);
 
+        // WebP 시도 → 실패 시 JPEG 폴백
         canvas.toBlob(
-          (blob) => blob ? resolve(blob) : reject(new Error('변환 실패')),
+          (blob) => {
+            if (blob) {
+              resolve({ blob, ext: 'webp', type: 'image/webp' });
+            } else {
+              canvas.toBlob(
+                (jpegBlob) => jpegBlob
+                  ? resolve({ blob: jpegBlob, ext: 'jpg', type: 'image/jpeg' })
+                  : reject(new Error('변환 실패')),
+                'image/jpeg',
+                quality,
+              );
+            }
+          },
           'image/webp',
           quality,
         );
@@ -337,25 +350,37 @@ export default function AdminPortfolioPage() {
 
   // Worker 경유 이미지 업로드
   const uploadToWorker = async (blob: Blob, filename: string, contentType: string, folder: string): Promise<string> => {
-    const res = await fetch('/api/image-upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, contentType, folder }),
-    });
+    // 1단계: 업로드 URL 발급
+    let res: Response;
+    try {
+      res = await fetch('/api/image-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, contentType, folder }),
+      });
+    } catch (e) {
+      throw new Error(`[1단계] URL 발급 네트워크 오류: ${e instanceof Error ? e.message : '알 수 없음'}`);
+    }
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || '업로드 정보 발급 실패');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`[1단계] URL 발급 실패 (${res.status}): ${(err as Record<string, string>).error || res.statusText}`);
     }
     const { uploadUrl, token, publicUrl } = await res.json();
 
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
-      body: blob,
-    });
+    // 2단계: Worker에 파일 업로드
+    let uploadRes: Response;
+    try {
+      uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
+        body: blob,
+      });
+    } catch (e) {
+      throw new Error(`[2단계] Worker 업로드 네트워크 오류 (${Math.round(blob.size / 1024)}KB): ${e instanceof Error ? e.message : '알 수 없음'}`);
+    }
     if (!uploadRes.ok) {
-      const text = await uploadRes.text();
-      throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
+      const text = await uploadRes.text().catch(() => '');
+      throw new Error(`[2단계] Worker 업로드 실패 (${uploadRes.status}): ${text}`);
     }
     return publicUrl;
   };
@@ -378,10 +403,10 @@ export default function AdminPortfolioPage() {
         fileName = file.name.replace(/\.[^/.]+$/, '') + '_watermarked.jpg';
       }
 
-      // 클라이언트에서 WebP q90, 최대 2048px로 압축
-      const compressed = await compressImage(fileToUpload, 2048, 0.9);
-      const webpName = fileName.replace(/\.[^/.]+$/, '.webp');
-      const url = await uploadToWorker(compressed, webpName, 'image/webp', 'portfolio');
+      // 클라이언트에서 최대 2048px로 압축 (WebP 우선, 미지원 시 JPEG)
+      const { blob: compressed, ext, type } = await compressImage(fileToUpload, 2048, 0.9);
+      const compressedName = fileName.replace(/\.[^/.]+$/, `.${ext}`);
+      const url = await uploadToWorker(compressed, compressedName, type, 'portfolio');
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (error) {
       console.error('Upload error:', error);

@@ -102,31 +102,41 @@ export default function AdminMenuPage() {
     folder: string,
   ): Promise<string> => {
     // 1단계: 업로드 URL + 토큰 발급
-    const res = await fetch('/api/image-upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, contentType, folder }),
-    });
+    let res: Response;
+    try {
+      res = await fetch('/api/image-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, contentType, folder }),
+      });
+    } catch (e) {
+      throw new Error(`[1단계] URL 발급 네트워크 오류: ${e instanceof Error ? e.message : '알 수 없음'}`);
+    }
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || '업로드 정보 발급 실패');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`[1단계] URL 발급 실패 (${res.status}): ${(err as Record<string, string>).error || res.statusText}`);
     }
     const { uploadUrl, token, publicUrl } = await res.json();
 
     // 2단계: Worker에 직접 업로드
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
-      body: file,
-    });
+    let uploadRes: Response;
+    try {
+      uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType, 'X-Upload-Token': token },
+        body: file,
+      });
+    } catch (e) {
+      throw new Error(`[2단계] Worker 업로드 네트워크 오류 (${Math.round(file.size / 1024)}KB): ${e instanceof Error ? e.message : '알 수 없음'}`);
+    }
     if (!uploadRes.ok) {
-      const text = await uploadRes.text();
-      throw new Error(`업로드 실패 (${uploadRes.status}): ${text}`);
+      const text = await uploadRes.text().catch(() => '');
+      throw new Error(`[2단계] Worker 업로드 실패 (${uploadRes.status}): ${text}`);
     }
     return publicUrl;
   };
 
-  // 클라이언트 이미지 압축 (썸네일용: WebP 지원 시 WebP, 아니면 JPEG)
+  // 클라이언트 이미지 압축 (WebP 우선, 미지원 시 JPEG 폴백)
   const compressImage = (file: File, maxDim: number, quality: number): Promise<{ blob: Blob; ext: string; type: string }> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -143,8 +153,21 @@ export default function AdminMenuPage() {
         if (!ctx) { reject(new Error('Canvas 생성 실패')); return; }
         ctx.drawImage(img, 0, 0, w, h);
 
+        // WebP 시도 → 실패 시 JPEG 폴백
         canvas.toBlob(
-          (blob) => blob ? resolve({ blob, ext: 'webp', type: 'image/webp' }) : reject(new Error('변환 실패')),
+          (blob) => {
+            if (blob) {
+              resolve({ blob, ext: 'webp', type: 'image/webp' });
+            } else {
+              canvas.toBlob(
+                (jpegBlob) => jpegBlob
+                  ? resolve({ blob: jpegBlob, ext: 'jpg', type: 'image/jpeg' })
+                  : reject(new Error('변환 실패')),
+                'image/jpeg',
+                quality,
+              );
+            }
+          },
           'image/webp',
           quality,
         );
