@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/auth-fetch';
 import Link from 'next/link';
 import {
   Plus,
@@ -350,15 +351,16 @@ export default function AdminPortfolioPage() {
 
   // Worker 경유 이미지 업로드
   const uploadToWorker = async (blob: Blob, filename: string, contentType: string, folder: string): Promise<string> => {
-    // 1단계: 업로드 URL 발급
+    // 1단계: 업로드 URL 발급 (authFetch → 401 시 자동 로그아웃)
     let res: Response;
     try {
-      res = await fetch('/api/image-upload', {
+      res = await authFetch('/api/image-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename, contentType, folder }),
       });
     } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') throw e;
       throw new Error(`[1단계] URL 발급 네트워크 오류: ${e instanceof Error ? e.message : '알 수 없음'}`);
     }
     if (!res.ok) {
@@ -429,7 +431,7 @@ export default function AdminPortfolioPage() {
         : '/api/portfolio';
       const method = editingItem ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -449,7 +451,8 @@ export default function AdminPortfolioPage() {
         const error = await res.json();
         alert(error.error || '저장 실패');
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') return;
       alert('저장 중 오류가 발생했습니다');
     }
   };
@@ -459,7 +462,7 @@ export default function AdminPortfolioPage() {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const res = await fetch(`/api/portfolio/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/portfolio/${id}`, { method: 'DELETE' });
       if (res.ok) {
         loadData();
       }
@@ -516,7 +519,7 @@ export default function AdminPortfolioPage() {
         : '/api/categories';
       const method = editingCategory ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryFormData),
@@ -531,7 +534,8 @@ export default function AdminPortfolioPage() {
         const error = await res.json();
         alert(error.error || '저장 실패');
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') return;
       alert('저장 중 오류가 발생했습니다');
     }
   };
@@ -541,7 +545,7 @@ export default function AdminPortfolioPage() {
     if (!confirm('정말 삭제하시겠습니까? 해당 카테고리의 포트폴리오가 없어야 삭제 가능합니다.')) return;
 
     try {
-      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/categories/${id}`, { method: 'DELETE' });
       if (res.ok) {
         loadData();
       } else {

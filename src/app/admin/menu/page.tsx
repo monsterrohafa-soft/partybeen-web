@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/auth-fetch';
 import Link from 'next/link';
 import {
   Plus,
@@ -101,15 +102,16 @@ export default function AdminMenuPage() {
     contentType: string,
     folder: string,
   ): Promise<string> => {
-    // 1단계: 업로드 URL + 토큰 발급
+    // 1단계: 업로드 URL + 토큰 발급 (authFetch → 401 시 자동 로그아웃)
     let res: Response;
     try {
-      res = await fetch('/api/image-upload', {
+      res = await authFetch('/api/image-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename, contentType, folder }),
       });
     } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') throw e;
       throw new Error(`[1단계] URL 발급 네트워크 오류: ${e instanceof Error ? e.message : '알 수 없음'}`);
     }
     if (!res.ok) {
@@ -232,7 +234,7 @@ export default function AdminMenuPage() {
       const url = editingMenu ? `/api/menu/${editingMenu.id}` : '/api/menu';
       const method = editingMenu ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...menuForm, categoryId }),
@@ -247,7 +249,8 @@ export default function AdminMenuPage() {
         const error = await res.json();
         alert(error.error || '저장 실패');
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') return;
       alert('저장 중 오류가 발생했습니다');
     }
   };
@@ -257,11 +260,12 @@ export default function AdminMenuPage() {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const res = await fetch(`/api/menu/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/api/menu/${id}`, { method: 'DELETE' });
       if (res.ok) {
         loadData();
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') return;
       alert('삭제 중 오류가 발생했습니다');
     }
   };
@@ -269,7 +273,7 @@ export default function AdminMenuPage() {
   // 메뉴 표시/숨김 토글
   const handleToggleVisible = async (menu: Menu) => {
     try {
-      const res = await fetch(`/api/menu/${menu.id}`, {
+      const res = await authFetch(`/api/menu/${menu.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isVisible: !menu.isVisible }),
@@ -277,7 +281,8 @@ export default function AdminMenuPage() {
       if (res.ok) {
         loadData();
       }
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === '세션 만료') return;
       alert('수정 중 오류가 발생했습니다');
     }
   };
