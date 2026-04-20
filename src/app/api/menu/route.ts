@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 마지막 orderIndex 가져오기
-    const lastMenu = await prisma.menu.findFirst({
+    // 기존 항목 orderIndex를 +1 밀어내고 새 항목을 맨 위(0)에 삽입
+    await prisma.menu.updateMany({
       where: { categoryId },
-      orderBy: { orderIndex: 'desc' },
+      data: { orderIndex: { increment: 1 } },
     });
 
     const menu = await prisma.menu.create({
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         detailImageUrl,
         displayMode: displayMode || 'MODAL',
         categoryId,
-        orderIndex: (lastMenu?.orderIndex || 0) + 1,
+        orderIndex: 0,
       },
       include: {
         category: true,

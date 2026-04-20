@@ -9,6 +9,13 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3000',
 ];
 
+function isAllowedOrigin(origin: string): boolean {
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  // Vercel 배포 도메인 패턴 허용 (partybeen-*.vercel.app)
+  if (/^https:\/\/partybeen[a-z0-9-]*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 function corsHeaders(origin: string): HeadersInit {
   return {
     'Access-Control-Allow-Origin': origin,
@@ -21,7 +28,7 @@ function corsHeaders(origin: string): HeadersInit {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const origin = request.headers.get('Origin') || '';
-    const isAllowed = ALLOWED_ORIGINS.includes(origin);
+    const isAllowed = isAllowedOrigin(origin);
     const headers = isAllowed ? corsHeaders(origin) : {};
 
     // CORS preflight

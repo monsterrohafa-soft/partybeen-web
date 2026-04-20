@@ -48,11 +48,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 가장 큰 orderIndex 찾기
-    const maxOrder = await prisma.portfolio.findFirst({
+    // 기존 항목 orderIndex를 +1 밀어내고 새 항목을 맨 위(0)에 삽입
+    await prisma.portfolio.updateMany({
       where: { categoryId },
-      orderBy: { orderIndex: 'desc' },
-      select: { orderIndex: true },
+      data: { orderIndex: { increment: 1 } },
     });
 
     const portfolio = await prisma.portfolio.create({
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
         imagePosition: imagePosition || null,
         categoryId,
         externalUrl: externalUrl || null,
-        orderIndex: (maxOrder?.orderIndex ?? 0) + 1,
+        orderIndex: 0,
       },
       include: {
         category: true,
