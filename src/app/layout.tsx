@@ -3,9 +3,10 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MobileBottomBar from "@/components/layout/MobileBottomBar";
-import { BRAND, CONTACT } from "@/lib/constants";
+import { BRAND, CONTACT, COMPANY, SISTER_BRAND } from "@/lib/constants";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.partybeen.com'),
   title: {
     default: `${BRAND.name} | 부산 프리미엄 케이터링`,
     template: `%s | ${BRAND.name}`,
@@ -32,6 +33,30 @@ export const metadata: Metadata = {
   },
 };
 
+// AI 엔진·검색엔진용 사업장 정보 (schema.org)
+const businessJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FoodEstablishment',
+  name: BRAND.nameKo,
+  alternateName: BRAND.nameEn,
+  description: BRAND.description,
+  url: 'https://www.partybeen.com',
+  image: 'https://www.partybeen.com/logo/main.png',
+  telephone: COMPANY.phone,
+  email: CONTACT.email,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '과정로344번길 43 (연산동) 1층',
+    addressLocality: '연제구',
+    addressRegion: '부산광역시',
+    addressCountry: 'KR',
+  },
+  servesCuisine: '케이터링, 한식',
+  areaServed: '부산광역시 및 경남 일대',
+  taxID: COMPANY.businessNumber,
+  sameAs: [CONTACT.instagram, CONTACT.blog, SISTER_BRAND.url],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,6 +69,10 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
         />
       </head>
       <body className="antialiased">

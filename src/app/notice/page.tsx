@@ -52,9 +52,30 @@ export default async function NoticePage({ searchParams }: NoticePageProps) {
   const currentPage = parseInt(params.page || '1');
   const { notices, pagination } = await getNotices(currentPage);
 
+  // 공지사항(안내·규정 등)을 AI 엔진용 FAQ 스키마로 노출
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    inLanguage: 'ko',
+    mainEntity: notices.map((notice) => ({
+      '@type': 'Question',
+      name: notice.title,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: notice.content.slice(0, 1000),
+      },
+    })),
+  };
+
   return (
     <div className="py-8 sm:py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {notices.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          />
+        )}
         {/* 페이지 헤더 */}
         <div className="text-center mb-10 sm:mb-14">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#025566] to-[#013A46] rounded-2xl mb-4 shadow-lg">

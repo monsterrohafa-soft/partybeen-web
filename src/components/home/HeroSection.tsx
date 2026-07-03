@@ -71,6 +71,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="mb-6"
         >
+          <span className="sr-only">부산 프리미엄 출장 케이터링, {BRAND.nameKo}</span>
           <Image
             src="/logo/main.png"
             alt={BRAND.name}
