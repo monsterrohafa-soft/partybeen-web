@@ -39,9 +39,9 @@ export default function HeroSection() {
           playsInline
           preload="auto"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover opacity-70"
-          poster="/videos/hero-poster.jpg?v=2"
+          poster="/videos/hero-poster.jpg?v=3"
         >
-          <source src="/videos/hero.mp4?v=2" type="video/mp4" />
+          <source src="/videos/hero.mp4?v=3" type="video/mp4" />
         </video>
         {/* 그라디언트 오버레이 */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#013A46]/80 via-transparent to-[#013A46]/90" />
