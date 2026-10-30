@@ -3,6 +3,12 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 
+// 예비값 없이 — 키가 없으면 가짜 키로 로그인 쿠키를 만들지 말고 바로 멈춘다
+const authSecret = process.env.NEXTAUTH_SECRET;
+if (!authSecret) {
+  throw new Error('NEXTAUTH_SECRET 환경변수가 설정되지 않았습니다');
+}
+
 export const authOptions: AuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   session: { strategy: 'jwt' },
@@ -64,5 +70,5 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || 'eMdxwHDVvHDSyqQZ4uMKLEd0xiqdNZ4ad251MhWyKpc=',
+  secret: authSecret,
 };
