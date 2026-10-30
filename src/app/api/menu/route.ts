@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/auth';
 
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const includeHidden = searchParams.get('includeHidden') === 'true';
 
-    const where: any = {};
+    const where: Prisma.MenuWhereInput = {};
     if (!includeHidden) {
       where.isVisible = true;
     }
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
     }
 

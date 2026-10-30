@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Lock, User, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
@@ -113,12 +114,12 @@ export default function AdminLoginPage() {
 
         {/* 홈으로 돌아가기 */}
         <div className="text-center mt-6">
-          <a
+          <Link
             href="/"
             className="text-gray-300 hover:text-white text-sm transition-colors"
           >
             ← 홈으로 돌아가기
-          </a>
+          </Link>
         </div>
       </div>
     </div>

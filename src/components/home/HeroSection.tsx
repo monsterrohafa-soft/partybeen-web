@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -8,12 +8,9 @@ import { ChevronDown, Sparkles } from 'lucide-react';
 import { BRAND, CONTACT } from '@/lib/constants';
 
 export default function HeroSection() {
-  const [isClient, setIsClient] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    setIsClient(true);
-
     // 비디오 자동 재생 시도 (브라우저 정책으로 막힐 경우 대비)
     const video = videoRef.current;
     if (video) {

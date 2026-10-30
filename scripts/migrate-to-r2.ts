@@ -272,7 +272,7 @@ async function migrateProposals() {
 
   // Proposal 모델이 없을 수 있음 (chefbox)
   try {
-    const proposals = await (prisma as any).proposal.findMany();
+    const proposals = await prisma.proposal.findMany();
 
     for (const item of proposals) {
       if (!isBlobUrl(item.fileUrl)) {
@@ -284,7 +284,7 @@ async function migrateProposals() {
         console.log(`  ⬆ ${item.title} — PDF 이전 중...`);
         const { newUrl, originalSize } = await migratePdf(item.fileUrl, item.id);
 
-        await (prisma as any).proposal.update({
+        await prisma.proposal.update({
           where: { id: item.id },
           data: { fileUrl: newUrl },
         });
